@@ -9,7 +9,7 @@ defmodule Subastero do
   end
 
   def notificar(interesados, mensaje) do
-    Enum.each(interesados, fn {pid_interesado, _ } -> send pid_interesado, mensaje end)
+    Enum.each(interesados, fn(interesado) -> send elem(interesado, 0), mensaje end)
   end
 
   def loop({subastas, compradores, usuarios}) do
@@ -64,7 +64,7 @@ defmodule Subastero do
            }
           )
 
-          notificar([pid_comprador], { :ok, "Tu oferta esta primero en #{subasta[:titulo]}!"})
+          notificar([{pid_comprador}], { :ok, "Tu oferta esta primero en #{subasta[:titulo]}!"})
 
           diferencia = HashSet.new
           diferencia = Set.put(diferencia, pid_comprador)
@@ -75,11 +75,10 @@ defmodule Subastero do
           IO.puts "ATENCION: La nueva oferta fue realizada con exito"
 
         else
-          notificar([pid_comprador], {:ok, "Tu oferta fue insuficiente"})
+          notificar([{pid_comprador}], {:ok, "Tu oferta fue insuficiente"})
         end
       { :listar_subastas, pid_usuario } ->
-
-        notificar([pid_usuario], {:ok, subastas})
+        notificar([{ pid_usuario }], {:ok, subastas})
 
       loop({ subastas, compradores, usuarios })
     end
