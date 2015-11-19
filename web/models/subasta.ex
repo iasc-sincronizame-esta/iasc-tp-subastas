@@ -5,12 +5,14 @@ defmodule IascTpSubastas.Subasta do
     field :titulo, :string
     field :precio, :integer
     field :duracion, :integer
+    field :interesados, { :array, :string }
+    field :ganador_actual, :string
 
     timestamps
   end
 
   @required_fields ~w(titulo precio duracion)
-  @optional_fields ~w()
+  @optional_fields ~w(interesados ganador_actual)
 
   @doc """
   Creates a changeset based on the `model` and `params`.
