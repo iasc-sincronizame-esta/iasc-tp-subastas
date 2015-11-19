@@ -65,10 +65,9 @@ defmodule Subastero do
 
           notificar([%{pid: pid_comprador}], { :ok, "Tu oferta esta primero en #{subasta[:titulo]}!"})
 
-          diferencia = HashSet.new
-          diferencia = Set.put(diferencia, pid_comprador)
+          compradores_a_notificar = Enum.reject(subasta[:compradores], fn({k,v}) -> k == 1 end)
 
-          notificar(Map.values(Set.difference(subasta[:compradores], diferencia)),
+          notificar(Enum.map(compradores_a_notificar, fn(comprador) -> Map.values(comprador) end),
             { :nueva_oferta, "Hubo una nueva oferta en: #{subasta[:titulo]} de $ #{oferta}"})
 
           IO.puts "ATENCION: La nueva oferta fue realizada con exito"
