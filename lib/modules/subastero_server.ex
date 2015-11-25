@@ -24,8 +24,8 @@ defmodule SubasteroServer do
     GenServer.call server, { :ofertar, id_subasta, pid_comprador, oferta }
   end
 
-  def listar_subastas(server, pid_usuario) do
-    GenServer.call server, { :listar_subastas, pid_usuario }
+  def listar_subastas(server) do
+    GenServer.call server, { :listar_subastas }
   end
 
   # -----
