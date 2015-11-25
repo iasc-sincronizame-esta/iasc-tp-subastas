@@ -1,4 +1,5 @@
 require Integer
+require SubastasHome
 
 defmodule SubasteroServer do
   use GenServer
@@ -36,13 +37,15 @@ defmodule SubasteroServer do
   # ---------- Callbacks ------------
 
   def init(:ok) do
-    subastas = %{}
+    { _, subastasHome } = SubastasHome.start_link
     compradores = %{}
-    # spawn fn -> loop({ subastas, compradores }) end
-    {:ok, {subastas, compradores}}
+    {:ok, {subastasHome, compradores}}
   end
 
-  def handle_call({ :crear_usuario, pid_usuario, nombre }, _from,  { subastas, compradores }) do
+  ###
+  ### CREAR USUARIO
+  ###
+  def handle_call({ :crear_usuario, pid_usuario, nombre }, _from,  { subastasHome, compradores }) do
     id_usuario =  :random.uniform(1000000)
 
     datos_comprador =
@@ -55,10 +58,13 @@ defmodule SubasteroServer do
 
     IO.puts "ATENCIÓN! TENEMOS UN NUEVO USUARIO: #{nombre}"
 
-    {:reply, :ok, { subastas, compradores } }
+    {:reply, :ok, { subastasHome, compradores } }
   end
 
-  def handle_call({ :crear_subasta, pid_vendedor, titulo, precio_base, duracion }, _from, { subastas, compradores }) do
+  ###
+  ### CREAR SUBASTA
+  ###
+  def handle_call({ :crear_subasta, pid_vendedor, titulo, precio_base, duracion }, _from, { subastasHome, compradores }) do
     id_subasta =  :random.uniform(1000000)
     datos_subasta =
       %{
@@ -68,23 +74,27 @@ defmodule SubasteroServer do
         duracion: duracion,
         compradores: HashSet.new
       }
-    subastas = Map.put(subastas, id_subasta, datos_subasta)
+
+    SubastasHome.upsert subastasHome, id_subasta, datos_subasta
 
     notificar(Map.values(compradores), { :nueva_subasta, datos_subasta} )
 
     IO.puts "ATENCIÓN! TENEMOS UNA NUEVA SUBASTA: #{titulo}"
 
-    {:reply, :ok, { subastas, compradores } }
+    {:reply, :ok, { subastasHome, compradores } }
   end
 
-  def handle_call({ :ofertar, id_subasta, pid_comprador, oferta }, _from, { subastas, compradores }) do
-    subasta = Map.get(subastas, id_subasta)
+  ###
+  ### OFERTAR
+  ###
+  def handle_call({ :ofertar, id_subasta, pid_comprador, oferta }, _from, { subastasHome, compradores }) do
+    subasta = SubastasHome.get subastasHome, id_subasta
 
     if oferta > subasta[:precio_base] do
 
       Map.put(subasta, :compradores, Set.put(subasta[:compradores], pid_comprador))
 
-      subastas = Map.put(subastas, id_subasta,
+      SubastasHome.upsert(subastasHome, id_subasta,
         %{
           pid_vendedor: subasta[:pid_vendedor],
           titulo: subasta[:titulo],
@@ -108,11 +118,14 @@ defmodule SubasteroServer do
       notificar([%{pid: pid_comprador}], {:ok, "Tu oferta fue insuficiente"})
     end
 
-    {:reply, :ok, { subastas, compradores } }
+    {:reply, :ok, { subastasHome, compradores } }
   end
 
-  def handle_call({ :listar_subastas, pid_usuario }, _from, { subastas, compradores }) do
-    notificar([%{pid:  pid_usuario }], {:ok, subastas})
-    {:reply, :ok, { subastas, compradores } }
+  ###
+  ### LISTAR SUBASTAS
+  ###
+  def handle_call({ :listar_subastas }, _from, { subastasHome, compradores }) do
+    subastas = SubastasHome.get_all subastasHome
+    {:reply, subastas, { subastasHome, compradores } }
   end
 end

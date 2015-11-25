@@ -13,16 +13,16 @@ defmodule SubastasHome do
 
   # ---
 
+  def get_all(server) do
+    GenServer.call server, { :get_all }
+  end
+
   def get(server, id_subasta) do
     GenServer.call server, { :get, id_subasta }
   end
 
-  def create(server, id_subasta, datos_subasta) do
-    GenServer.cast server, { :create, id_subasta, datos_subasta }
-  end
-
-  def actualizar(server, id_subasta, datos_subasta) do
-    GenServer.cast server, { :put, id_subasta, datos_subasta }
+  def upsert(server, id_subasta, datos_subasta) do
+    GenServer.cast server, { :upsert, id_subasta, datos_subasta }
   end
 
   def delete(server, id_subasta) do
@@ -36,15 +36,15 @@ defmodule SubastasHome do
     { :ok, mapa }
   end
 
+  def handle_call({ :get_all }, _from, mapa) do
+    { :reply, mapa, mapa }
+  end
+
   def handle_call({ :get, id_subasta }, _from, mapa) do
     { :reply, Map.get(mapa, id_subasta), mapa }
   end
 
-  def handle_cast({ :create, id_subasta, datos_subasta }, mapa) do
-    { :noreply, Map.put(mapa, id_subasta, datos_subasta) }
-  end
-
-  def handle_cast({ :update, id_subasta, datos_subasta }, mapa) do
+  def handle_cast({ :upsert, id_subasta, datos_subasta }, mapa) do
     { :noreply, Map.put(mapa, id_subasta, datos_subasta) }
   end
 
