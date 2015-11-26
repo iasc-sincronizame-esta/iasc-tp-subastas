@@ -35,7 +35,7 @@ defmodule SubasteroServerTest do
 
       SubasteroServer.ofertar subastero, id, self, 1000
       SubasteroServer.ofertar subastero, id, unComprador, 1001
-      
+
       receive do
         { :nueva_oferta, mensaje } ->
           assert mensaje == "La subasta Notebook tiene un nuevo precio: $ 1001"
@@ -47,31 +47,33 @@ defmodule SubasteroServerTest do
     test "cuando la subasta termina, le avisa al ganador y a los perdedores" do
       {:ok, subastero} = SubasteroServer.start_link
 
-      looser1 = spawn &SubasteroServerTest.esperarAPerder/0
-      looser2 = spawn &SubasteroServerTest.esperarAPerder/0
+      parent = self
+      esperarAPerder = fn ->
+        Process.flag(:trap_exit, true)
+        receive do
+          {:subasta_perdida, _} -> send(parent, {:perdi, self()})
+        end
+      end
+
+      looser1 = spawn_link esperarAPerder
+      looser2 = spawn_link esperarAPerder
+
       SubasteroServer.crear_usuario subastero, looser1, "Perdedor 1"
       SubasteroServer.crear_usuario subastero, looser2, "Perdedor 2"
       SubasteroServer.crear_usuario subastero, self, "Ganador"
-      
+
       id = SubasteroServer.crear_subasta subastero, self, "Notebook", 100, 1000
-      
+
       SubasteroServer.ofertar subastero, id, looser1, 200
       SubasteroServer.ofertar subastero, id, looser2, 300
       SubasteroServer.ofertar subastero, id, self, 400
-      
+
       receive do
         { :subasta_ganada, mensaje } ->
           assert mensaje == "Has ganado la subasta: Notebook!"
       end
-      assert not Process.alive? looser1
-      assert not Process.alive? looser2
-    end
-  end
-
-  def esperarAPerder() do
-    receive do
-      { :subasta_perdida, _ } ->
-      _ -> SubasteroServerTest.esperarAPerder()
+      assert_receive {:perdi, looser1}
+      assert_receive {:perdi, looser2}
     end
   end
 end
