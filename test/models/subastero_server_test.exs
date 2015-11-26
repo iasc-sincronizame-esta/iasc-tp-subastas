@@ -31,10 +31,10 @@ defmodule SubasteroServerTest do
       unComprador = spawn fn -> receive do end end
 
       id = SubasteroServer.crear_subasta subastero, "Notebook", 999, 60000
-      SubasteroServer.crear_usuario subastero, unComprador, "Un comprador"
-      SubasteroServer.crear_usuario subastero, self, "Yo"
+      {:ok, id_unComprador } = SubasteroServer.crear_usuario subastero, unComprador, "Un comprador"
+      {:ok, id_yo } = SubasteroServer.crear_usuario subastero, self, "Yo"
 
-      SubasteroServer.ofertar subastero, id, unComprador, 1001
+      SubasteroServer.ofertar subastero, id, id_unComprador, 1001
 
       receive do
         { :nueva_oferta, mensaje } ->
@@ -54,9 +54,9 @@ defmodule SubasteroServerTest do
       end
 
       id = SubasteroServer.crear_subasta subastero, "Notebook", 999, 60000
-      SubasteroServer.crear_usuario subastero, unComprador, "Un comprador"
+      {:ok, id_unComprador } = SubasteroServer.crear_usuario subastero, unComprador, "Un comprador"
 
-      SubasteroServer.ofertar subastero, id, unComprador, 1000
+      SubasteroServer.ofertar subastero, id, id_unComprador, 1000
 
       assert_receive {:voy_ganando, "Tu oferta está ganando en Notebook"}
     end
@@ -75,15 +75,15 @@ defmodule SubasteroServerTest do
       looser1 = spawn_link esperarAPerder
       looser2 = spawn_link esperarAPerder
 
-      SubasteroServer.crear_usuario subastero, looser1, "Perdedor 1"
-      SubasteroServer.crear_usuario subastero, looser2, "Perdedor 2"
-      SubasteroServer.crear_usuario subastero, self, "Ganador"
+      {:ok, id_looser1 } = SubasteroServer.crear_usuario subastero, looser1, "Perdedor 1"
+      {:ok, id_looser2 } = SubasteroServer.crear_usuario subastero, looser2, "Perdedor 2"
+      {:ok, id_ganador } = SubasteroServer.crear_usuario subastero, self, "Ganador"
 
       id = SubasteroServer.crear_subasta subastero, "Notebook", 100, 500
 
-      SubasteroServer.ofertar subastero, id, looser1, 200
-      SubasteroServer.ofertar subastero, id, looser2, 300
-      SubasteroServer.ofertar subastero, id, self, 400
+      SubasteroServer.ofertar subastero, id, id_looser1, 200
+      SubasteroServer.ofertar subastero, id, id_looser2, 300
+      SubasteroServer.ofertar subastero, id, id_ganador, 400
 
       receive do
         { :subasta_ganada, mensaje } ->
@@ -121,11 +121,11 @@ defmodule SubasteroServerTest do
       end
 
       id_subasta = SubasteroServer.crear_subasta subastero, "Notebook", 999, 60000
-      SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
-      SubasteroServer.crear_usuario subastero, self, "Yo"
+      {:ok, id_unComprador } = SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
+      {:ok, id_yo } = SubasteroServer.crear_usuario subastero, self, "Yo"
 
-      SubasteroServer.ofertar subastero, id_subasta, self, 1000
-      SubasteroServer.ofertar subastero, id_subasta, unComprador, 1001
+      SubasteroServer.ofertar subastero, id_subasta, id_yo, 1000
+      SubasteroServer.ofertar subastero, id_subasta, id_unComprador, 1001
 
       SubasteroServer.cancelar_subasta subastero, id_subasta
 
@@ -144,12 +144,12 @@ defmodule SubasteroServerTest do
       {:ok, subastero} = SubasteroServer.start_link
       unComprador = spawn fn -> receive do end end
 
-      SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
+      {:ok, id_unComprador } = SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
       id_subasta = SubasteroServer.crear_subasta subastero, "Notebook", 999, 500
-      SubasteroServer.crear_usuario subastero, self, "Yo"
+      {:ok, id_yo } = SubasteroServer.crear_usuario subastero, self, "Yo"
 
-      SubasteroServer.ofertar subastero, id_subasta, unComprador, 1000
-      SubasteroServer.ofertar subastero, id_subasta, self, 1001
+      SubasteroServer.ofertar subastero, id_subasta, id_unComprador, 1000
+      SubasteroServer.ofertar subastero, id_subasta, id_yo, 1001
 
       receive do
         { :subasta_ganada, mensaje } ->
@@ -165,13 +165,13 @@ defmodule SubasteroServerTest do
       {:ok, subastero} = SubasteroServer.start_link
       unComprador = spawn fn -> receive do end end
 
-      SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
+      {:ok, id_unComprador } = SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
       subasta_notebook = SubasteroServer.crear_subasta subastero, "Notebook", 999, 300
       subasta_campera = SubasteroServer.crear_subasta subastero, "Campera de cuero para romper la noche", 200, 500
-      SubasteroServer.crear_usuario subastero, self, "Yo"
+      {:ok, id_yo } = SubasteroServer.crear_usuario subastero, self, "Yo"
 
-      SubasteroServer.ofertar subastero, subasta_notebook, self, 1001
-      SubasteroServer.ofertar subastero, subasta_campera, self, 300
+      SubasteroServer.ofertar subastero, subasta_notebook, id_yo, 1001
+      SubasteroServer.ofertar subastero, subasta_campera, id_yo, 300
 
       receive do
         { :subasta_ganada, mensaje } ->

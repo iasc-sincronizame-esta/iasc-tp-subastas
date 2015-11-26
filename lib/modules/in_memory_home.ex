@@ -15,6 +15,10 @@ defmodule Home.InMemory do
         GenServer.call server, { :get_all }
       end
 
+      def get_all(server, ids) do
+        GenServer.call server, { :get_all, ids }
+      end
+
       def get(server, id_subasta) do
         GenServer.call server, { :get, id_subasta }
       end
@@ -40,6 +44,10 @@ defmodule Home.InMemory do
 
       def handle_call({ :get, id_subasta }, _from, mapa) do
         { :reply, Map.get(mapa, id_subasta), mapa }
+      end
+
+      def handle_call({ :get_all, ids}, _from, mapa) do
+        { :reply, Map.take(mapa, ids), mapa}
       end
 
       def handle_cast({ :upsert, id_subasta, datos_subasta }, mapa) do
