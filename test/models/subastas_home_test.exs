@@ -40,4 +40,14 @@ defmodule SubastasHomeTest do
 
     assert SubastasHome.get_all(home) == %{ 1 => "datos", 2 => "datos2"}
   end
+
+  test "get_all/1" do
+    {:ok, home} = SubastasHome.start_link
+
+    SubastasHome.upsert(home, 1, "datos")
+    SubastasHome.upsert(home, 2, "datos2")
+    SubastasHome.upsert(home, 3, "datos3")
+
+    assert SubastasHome.get_all(home, [1, 2]) == %{ 1 => "datos", 2 => "datos2"}
+  end
 end

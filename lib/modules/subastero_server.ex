@@ -1,5 +1,6 @@
 require Integer
 require SubastasHome
+require CompradoresHome
 require ControladorSubasta
 
 defmodule SubasteroServer do
@@ -21,8 +22,8 @@ defmodule SubasteroServer do
     GenServer.call server, { :crear_subasta, titulo, precio_actual, duracion }
   end
 
-  def ofertar(server, id_subasta, pid_comprador, oferta) do
-    GenServer.call server, { :ofertar, id_subasta, pid_comprador, oferta }
+  def ofertar(server, id_subasta, id_comprador, oferta) do
+    GenServer.call server, { :ofertar, id_subasta, id_comprador, oferta }
   end
 
   def cancelar_subasta(server, id_subasta) do
@@ -47,17 +48,17 @@ defmodule SubasteroServer do
 
   def init(:ok) do
     IO.puts "El subastero ha sido iniciado"
-    
+
     { _, subastasHome } = SubastasHome.start_link
-    compradores = %{}
+    {_, compradoresHome} = CompradoresHome.start_link
     controladores = %{}
-    { :ok, { subastasHome, compradores, controladores } }
+    { :ok, { subastasHome, compradoresHome, controladores } }
   end
 
   ###
   ### CREAR USUARIO
   ###
-  def handle_call({ :crear_usuario, pid_usuario, nombre }, _from,  { subastasHome, compradores, controladores }) do
+  def handle_call({ :crear_usuario, pid_usuario, nombre }, _from,  { subastasHome, compradoresHome, controladores }) do
     id_usuario =  :random.uniform(1000000)
 
     datos_comprador =
@@ -66,17 +67,17 @@ defmodule SubasteroServer do
         nombre: nombre
       }
 
-    compradores = Map.put(compradores, id_usuario, datos_comprador)
+    CompradoresHome.upsert(compradoresHome, id_usuario, datos_comprador)
 
     IO.puts "ATENCIÓN! TENEMOS UN NUEVO USUARIO: #{nombre}"
 
-    { :reply, :ok, { subastasHome, compradores, controladores } }
+    { :reply, {:ok, id_usuario}, { subastasHome, compradoresHome, controladores } }
   end
 
   ###
   ### CREAR SUBASTA
   ###
-  def handle_call({ :crear_subasta, titulo, precio_actual, duracion }, _from, { subastasHome, compradores, controladores }) do
+  def handle_call({ :crear_subasta, titulo, precio_actual, duracion }, _from, { subastasHome, compradoresHome, controladores }) do
     id_subasta =  :random.uniform(1000000)
     datos_subasta =
       %{
@@ -88,7 +89,7 @@ defmodule SubasteroServer do
 
     SubastasHome.upsert subastasHome, id_subasta, datos_subasta
 
-    notificar(Map.values(compradores), { :nueva_subasta, datos_subasta })
+    notificar(Map.values(CompradoresHome.get_all(compradoresHome)), { :nueva_subasta, datos_subasta })
 
     pid_controlador = crear_controlador_subasta(id_subasta, duracion)
 
@@ -96,31 +97,31 @@ defmodule SubasteroServer do
 
     IO.puts "ATENCIÓN! TENEMOS UNA NUEVA SUBASTA: #{titulo}"
 
-    {:reply, id_subasta, { subastasHome, compradores, controladores } }
+    {:reply, id_subasta, { subastasHome, compradoresHome, controladores } }
   end
 
   ###
   ### OFERTAR
   ###
-  def handle_call({ :ofertar, id_subasta, pid_comprador, oferta }, _from, { subastasHome, compradores, controladores }) do
+  def handle_call({ :ofertar, id_subasta, id_comprador, oferta }, _from, { subastasHome, compradoresHome, controladores }) do
     subasta = SubastasHome.get subastasHome, id_subasta
+    comprador = CompradoresHome.get(compradoresHome, id_comprador)
 
     if oferta > subasta[:precio_actual] do
-      subasta = Map.put(subasta, :compradores, Set.put(subasta[:compradores], pid_comprador))
+      subasta = Map.put(subasta, :compradores, Set.put(subasta[:compradores], id_comprador))
 
       SubastasHome.upsert(subastasHome, id_subasta,
         %{
           titulo: subasta[:titulo],
           precio_actual: oferta,
           duracion: subasta[:duracion],
-          pid_comprador: pid_comprador,
+          id_comprador: id_comprador,
           compradores: subasta[:compradores]
        }
       )
+      notificar([comprador], { :ok, "Tu oferta está ganando en #{subasta[:titulo]}"})
 
-      notificar([%{pid: pid_comprador}], { :ok, "Tu oferta está ganando en #{subasta[:titulo]}"})
-
-      compradores_a_notificar = Enum.reject(Map.values(compradores), fn(comp) -> comp[:pid] == pid_comprador end)
+      compradores_a_notificar = Enum.reject(Map.values(CompradoresHome.get_all(compradoresHome)), fn(comp) -> comp[:pid] == comprador[:pid] end)
 
       notificar(
         compradores_a_notificar,
@@ -129,68 +130,68 @@ defmodule SubasteroServer do
 
       IO.puts "ATENCIÓN! UN USUARIO OFERTÓ EN #{subasta[:titulo]} por $ #{oferta}"
     else
-      notificar([%{pid: pid_comprador}], {:ok, "Tu oferta fue insuficiente"})
+      notificar([comprador], {:ok, "Tu oferta fue insuficiente"})
       IO.puts "ATENCIÓN! UN USUARIO OFERTÓ EN #{subasta[:titulo]} pero fue insuficiente"
     end
 
-    {:reply, :ok, { subastasHome, compradores, controladores } }
+    {:reply, :ok, { subastasHome, compradoresHome, controladores } }
   end
 
   ###
   ### CANCELAR SUBASTA
   ###
-  def handle_call({ :cancelar_subasta, id_subasta}, _from, { subastasHome, compradores, controladores }) do
+  def handle_call({ :cancelar_subasta, id_subasta}, _from, { subastasHome, compradoresHome, controladores }) do
     matar_controlador(controladores, id_subasta)
 
     subasta_a_cancelar = SubastasHome.get subastasHome, id_subasta
+    compradores_de_subasta = Map.values(CompradoresHome.get_all(compradoresHome, subasta_a_cancelar[:compradores]))
 
-    notificar(subasta_a_cancelar[:compradores], 
-      { :subasta_cancelada, "La subasta ha sido cancelada: #{subasta_a_cancelar[:titulo]}"},
-      fn(comprador) -> comprador end)
+    notificar(compradores_de_subasta,
+      { :subasta_cancelada, "La subasta ha sido cancelada: #{subasta_a_cancelar[:titulo]}"})
 
     SubastasHome.delete(subastasHome, id_subasta)
 
     IO.puts "ATENCIÓN! SE HA CANCELADO UNA SUBASTA: #{subasta_a_cancelar[:titulo]}"
 
-    {:reply, :ok, { subastasHome, compradores, controladores } }
+    {:reply, :ok, { subastasHome, compradoresHome, controladores } }
   end
 
   ###
   ### TERMINAR SUBASTA
   ###
-  def handle_call({ :terminar_subasta, id_subasta }, _from, { subastasHome, compradores, controladores }) do
+  def handle_call({ :terminar_subasta, id_subasta }, _from, { subastasHome, compradoresHome, controladores }) do
     IO.puts "ATENCIÓN! TERMINÓ LA SUBASTA #{id_subasta}"
 
     subasta = SubastasHome.get subastasHome, id_subasta
 
-    IO.inspect subasta 
+    IO.inspect subasta
 
-    pid_comprador = subasta[:pid_comprador]
+    comprador = CompradoresHome.get(compradoresHome, subasta[:id_comprador])
 
-    if pid_comprador != nil do 
-      notificar([pid_comprador], 
-        { :subasta_ganada, "Has ganado la subasta: #{subasta[:titulo]}!"},
-        fn(comprador) -> comprador end)
+    if comprador != nil do
+      notificar([comprador],
+        { :subasta_ganada, "Has ganado la subasta: #{subasta[:titulo]}!"})
     end
 
-    perdedores_a_notificar = Enum.reject(subasta[:compradores], fn(pid) -> pid == pid_comprador end)
+    ids_perdedores_a_notificar = Enum.reject(subasta[:compradores], fn(id) -> id == subasta[:id_comprador] end)
+    perdedores_a_notificar = Map.values(CompradoresHome.get_all(compradoresHome, ids_perdedores_a_notificar))
 
-    notificar(Enum.map(perdedores_a_notificar, fn(comprador) -> %{pid: comprador} end),
+    notificar(perdedores_a_notificar,
       { :subasta_perdida, "La subasta ha finalizado y has perdido: #{subasta[:titulo]}"})
 
     SubastasHome.delete subastasHome, id_subasta
 
     IO.puts "ATENCIÓN! La subasta #{subasta[:titulo]} terminó con éxito por #{subasta[:precio_actual]}"
 
-    {:reply, :ok, { subastasHome, compradores, controladores } }
+    {:reply, :ok, { subastasHome, compradoresHome, controladores } }
   end
 
   ###
   ### LISTAR SUBASTAS (para debuggear)
   ###
-  def handle_call({ :listar_subastas }, _from, { subastasHome, compradores, controladores }) do
+  def handle_call({ :listar_subastas }, _from, { subastasHome, compradoresHome, controladores }) do
     subastas = SubastasHome.get_all subastasHome
-    {:reply, subastas, { subastasHome, compradores, controladores } }
+    {:reply, subastas, { subastasHome, compradoresHome, controladores } }
   end
 
   # ---------- Helpers ------------
