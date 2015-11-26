@@ -92,6 +92,18 @@ defmodule SubasteroServerTest do
       assert_receive {:perdi, looser1}
       assert_receive {:perdi, looser2}
     end
+
+    test "la subasta puede terminar sin ningún ganador" do
+      {:ok, subastero} = SubasteroServer.start_link
+
+      SubasteroServer.crear_subasta subastero, "Subasta de 1 milisegundo", 20, 1
+
+      receive do
+      after 50 -> end
+
+      subastas = SubasteroServer.listar_subastas subastero
+      assert subastas == %{}
+    end
   end
 
   defmodule Escenario3 do
