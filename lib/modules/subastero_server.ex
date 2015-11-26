@@ -143,7 +143,7 @@ defmodule SubasteroServer do
 
   end
 
-  def handle_call({ :listar_subastas }, _from, { subastas, compradores }) do
+  def handle_call({ :listar_subastas }, _from, { subastasHome, compradores }) do
     subastas = SubastasHome.get_all subastasHome
     {:reply, {:ok, subastas}, { subastasHome, compradores } }
   end
