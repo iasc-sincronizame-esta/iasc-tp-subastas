@@ -17,8 +17,8 @@ defmodule SubasteroServer do
     GenServer.call server, { :crear_usuario, pid_usuario, nombre }
   end
 
-  def crear_subasta(server, titulo, precio_base, duracion) do
-    GenServer.call server, { :crear_subasta, titulo, precio_base, duracion }
+  def crear_subasta(server, titulo, precio_actual, duracion) do
+    GenServer.call server, { :crear_subasta, titulo, precio_actual, duracion }
   end
 
   def ofertar(server, id_subasta, pid_comprador, oferta) do
@@ -76,12 +76,12 @@ defmodule SubasteroServer do
   ###
   ### CREAR SUBASTA
   ###
-  def handle_call({ :crear_subasta, titulo, precio_base, duracion }, _from, { subastasHome, compradores, controladores }) do
+  def handle_call({ :crear_subasta, titulo, precio_actual, duracion }, _from, { subastasHome, compradores, controladores }) do
     id_subasta =  :random.uniform(1000000)
     datos_subasta =
       %{
         titulo: titulo,
-        precio_base: precio_base,
+        precio_actual: precio_actual,
         duracion: duracion,
         compradores: HashSet.new
       }
@@ -105,13 +105,13 @@ defmodule SubasteroServer do
   def handle_call({ :ofertar, id_subasta, pid_comprador, oferta }, _from, { subastasHome, compradores, controladores }) do
     subasta = SubastasHome.get subastasHome, id_subasta
 
-    if oferta > subasta[:precio_base] do
+    if oferta > subasta[:precio_actual] do
       subasta = Map.put(subasta, :compradores, Set.put(subasta[:compradores], pid_comprador))
 
       SubastasHome.upsert(subastasHome, id_subasta,
         %{
           titulo: subasta[:titulo],
-          precio_base: oferta,
+          precio_actual: oferta,
           duracion: subasta[:duracion],
           pid_comprador: pid_comprador,
           compradores: subasta[:compradores]
@@ -178,7 +178,7 @@ defmodule SubasteroServer do
 
     SubastasHome.delete subastasHome, id_subasta
 
-    IO.puts "ATENCIÓN! La subasta #{subasta[:titulo]} terminó con éxito por #{subasta[:precio_base]}"
+    IO.puts "ATENCIÓN! La subasta #{subasta[:titulo]} terminó con éxito por #{subasta[:precio_actual]}"
 
     {:reply, :ok, { subastasHome, compradores, controladores } }
   end

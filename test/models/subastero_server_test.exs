@@ -20,7 +20,7 @@ defmodule SubasteroServerTest do
       receive do
         { :nueva_subasta, subasta } ->
           assert subasta[:titulo] == "Notebook"
-          assert subasta[:precio_base] == 999
+          assert subasta[:precio_actual] == 999
       end
     end
 
