@@ -17,8 +17,8 @@ defmodule SubasteroServer do
     GenServer.call server, { :crear_usuario, pid_usuario, nombre }
   end
 
-  def crear_subasta(server, pid_vendedor, titulo, precio_base, duracion) do
-    GenServer.call server, { :crear_subasta, pid_vendedor, titulo, precio_base, duracion }
+  def crear_subasta(server, titulo, precio_base, duracion) do
+    GenServer.call server, { :crear_subasta, titulo, precio_base, duracion }
   end
 
   def ofertar(server, id_subasta, pid_comprador, oferta) do
@@ -51,7 +51,7 @@ defmodule SubasteroServer do
     { _, subastasHome } = SubastasHome.start_link
     compradores = %{}
     controladores = %{}
-    { :ok, {subastasHome, compradores, controladores } }
+    { :ok, { subastasHome, compradores, controladores } }
   end
 
   ###
@@ -76,11 +76,10 @@ defmodule SubasteroServer do
   ###
   ### CREAR SUBASTA
   ###
-  def handle_call({ :crear_subasta, pid_vendedor, titulo, precio_base, duracion }, _from, { subastasHome, compradores, controladores }) do
+  def handle_call({ :crear_subasta, titulo, precio_base, duracion }, _from, { subastasHome, compradores, controladores }) do
     id_subasta =  :random.uniform(1000000)
     datos_subasta =
       %{
-        pid_vendedor: pid_vendedor,
         titulo: titulo,
         precio_base: precio_base,
         duracion: duracion,
@@ -111,7 +110,6 @@ defmodule SubasteroServer do
 
       SubastasHome.upsert(subastasHome, id_subasta,
         %{
-          pid_vendedor: subasta[:pid_vendedor],
           titulo: subasta[:titulo],
           precio_base: oferta,
           duracion: subasta[:duracion],
@@ -153,7 +151,6 @@ defmodule SubasteroServer do
     IO.puts "ATENCIÓN! SE HA CANCELADO UNA SUBASTA: #{subasta_a_cancelar[:titulo]}"
 
     {:reply, :ok, { subastasHome, compradores, controladores } }
-
   end
 
   ###
