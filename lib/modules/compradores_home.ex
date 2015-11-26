@@ -1,5 +1,5 @@
 require Integer
 
-defmodule SubastasHome do
+defmodule CompradoresHome do
   use Home.InMemory
 end
