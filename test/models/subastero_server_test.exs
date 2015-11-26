@@ -40,8 +40,25 @@ defmodule SubasteroServerTest do
         { :nueva_oferta, mensaje } ->
           assert mensaje == "La subasta Notebook tiene un nuevo precio: $ 1001"
       end
+    end
 
-      assert Process.alive? unComprador # a él no se le avisó porque fue el que ofertó
+    test "cuando alguien oferta con un valor mayor, se le avisa que su oferta fue aceptada" do
+      {:ok, subastero} = SubasteroServer.start_link
+
+      parent = self
+      unComprador = spawn fn ->
+        Process.flag(:trap_exit, true)
+        receive do
+          {:ok, mensaje} -> send(parent, {:voy_ganando, mensaje})
+        end
+      end
+
+      id = SubasteroServer.crear_subasta subastero, self, "Notebook", 999, 60000
+      SubasteroServer.crear_usuario subastero, unComprador, "Un comprador"
+
+      SubasteroServer.ofertar subastero, id, unComprador, 1000
+
+      assert_receive {:voy_ganando, "Tu oferta está ganando en Notebook"}
     end
 
     test "cuando la subasta termina, le avisa al ganador y a los perdedores" do
