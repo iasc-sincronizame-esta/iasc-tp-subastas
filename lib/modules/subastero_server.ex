@@ -37,6 +37,8 @@ defmodule SubasteroServer do
   # ---------- Callbacks ------------
 
   def init(:ok) do
+    IO.puts "El subastero ha sido iniciado"
+    
     { _, subastasHome } = SubastasHome.start_link
     compradores = %{}
     {:ok, {subastasHome, compradores}}
@@ -112,7 +114,7 @@ defmodule SubasteroServer do
       notificar(Enum.map(compradores_a_notificar, fn(comprador) -> Map.values(comprador) end),
         { :nueva_oferta, "Hubo una nueva oferta en: #{subasta[:titulo]} de $ #{oferta}"})
 
-      IO.puts "ATENCION: La nueva oferta fue realizada con exito"
+      IO.puts "ATENCIÓN: La nueva oferta fue realizada con exito"
 
     else
       notificar([%{pid: pid_comprador}], {:ok, "Tu oferta fue insuficiente"})

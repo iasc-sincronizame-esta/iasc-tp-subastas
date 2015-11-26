@@ -13,6 +13,8 @@ defmodule IascTpSubastas do
       worker(IascTpSubastas.Repo, []),
       # Here you could define other workers and supervisors as children
       # worker(IascTpSubastas.Worker, [arg1, arg2, arg3]),
+
+      worker(SubasteroServer, [[name: {:global, GlobalSubastero}]], restart: :transient)
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
