@@ -183,4 +183,24 @@ defmodule SubasteroServerTest do
       end
     end
   end
+
+  defmodule Pruebas do
+    use ExUnit.Case
+
+    test "probando la biblioteca timex" do
+      now = Timex.Date.now
+      IO.inspect now
+      IO.inspect (now |> Timex.Date.add({ 0, 10.5, 0 }))
+      # el valor del medio está en segundos
+      # ¿pasar la duración a segundos?
+    end
+  end
+
+  # # ISO a día
+  # date = "2015-06-24T04:50:34-05:00"
+  # date |> DateFormat.parse("{ISO}")
+
+  # # Día a ISOz (para guardar en mongo)
+  # Date.local |> DateFormat.format("{ISOz}")
+  # {:ok, "2015-06-24T05:04:13.910Z"}
 end
