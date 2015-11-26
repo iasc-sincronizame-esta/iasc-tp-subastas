@@ -61,7 +61,7 @@ defmodule SubasteroServerTest do
       assert_receive {:voy_ganando, "Tu oferta está ganando en Notebook"}
     end
 
-    test "cuando la subasta termina, le avisa al ganador y a los perdedores" do
+    test "cuando la subasta termina, le avisa al ganador y a los perdedores (adjudicación con competencia)" do
       {:ok, subastero} = SubasteroServer.start_link
 
       parent = self
