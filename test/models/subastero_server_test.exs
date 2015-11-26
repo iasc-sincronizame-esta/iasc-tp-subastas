@@ -79,7 +79,7 @@ defmodule SubasteroServerTest do
       SubasteroServer.crear_usuario subastero, looser2, "Perdedor 2"
       SubasteroServer.crear_usuario subastero, self, "Ganador"
 
-      id = SubasteroServer.crear_subasta subastero, self, "Notebook", 100, 1000
+      id = SubasteroServer.crear_subasta subastero, self, "Notebook", 100, 500
 
       SubasteroServer.ofertar subastero, id, looser1, 200
       SubasteroServer.ofertar subastero, id, looser2, 300
@@ -133,7 +133,7 @@ defmodule SubasteroServerTest do
       unComprador = spawn fn -> receive do end end
 
       SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
-      id_subasta = SubasteroServer.crear_subasta subastero, self, "Notebook", 999, 1000
+      id_subasta = SubasteroServer.crear_subasta subastero, self, "Notebook", 999, 500
       SubasteroServer.crear_usuario subastero, self, "Yo"
 
       SubasteroServer.ofertar subastero, id_subasta, unComprador, 1000
@@ -142,6 +142,33 @@ defmodule SubasteroServerTest do
       receive do
         { :subasta_ganada, mensaje } ->
           assert mensaje == "Has ganado la subasta: Notebook!"
+      end
+    end
+  end
+
+  defmodule Escenario5 do
+    use ExUnit.Case
+
+    test "puede haber varias subastas funcionando simultáneamente" do
+      {:ok, subastero} = SubasteroServer.start_link
+      unComprador = spawn fn -> receive do end end
+
+      SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
+      subasta_notebook = SubasteroServer.crear_subasta subastero, self, "Notebook", 999, 300
+      subasta_campera = SubasteroServer.crear_subasta subastero, self, "Campera de cuero para romper la noche", 200, 500
+      SubasteroServer.crear_usuario subastero, self, "Yo"
+
+      SubasteroServer.ofertar subastero, subasta_notebook, self, 1001
+      SubasteroServer.ofertar subastero, subasta_campera, self, 300
+
+      receive do
+        { :subasta_ganada, mensaje } ->
+          assert mensaje == "Has ganado la subasta: Notebook!"
+      end
+
+      receive do
+        { :subasta_ganada, mensaje } ->
+          assert mensaje == "Has ganado la subasta: Campera de cuero para romper la noche!"
       end
     end
   end
