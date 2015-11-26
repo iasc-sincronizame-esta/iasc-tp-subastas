@@ -91,7 +91,7 @@ defmodule SubasteroServer do
 
     notificar(Map.values(compradores), { :nueva_subasta, datos_subasta} )
 
-    {_, pid_controlador} = crear_controlador_subasta(id_subasta, duracion)
+    pid_controlador = crear_controlador_subasta(id_subasta, duracion)
 
     controladores = Map.put(controladores, id_subasta, pid_controlador)
 
@@ -101,7 +101,8 @@ defmodule SubasteroServer do
   end
 
   def crear_controlador_subasta(id_subasta, duracion) do
-    spawn fn -> ControladorSubasta.controlar_subasta(self, id_subasta, duracion) end
+    parent = self
+    spawn fn -> ControladorSubasta.empezar_subasta(parent, id_subasta, duracion) end
   end
 
   ###
@@ -143,6 +144,8 @@ defmodule SubasteroServer do
 
   def handle_call({ :cancelar_subasta, id_subasta}, _from, { subastasHome, compradores, controladores }) do
 
+    matar_controlador(controladores, id_subasta)
+
     subasta_a_cancelar = SubastasHome.get subastasHome, id_subasta
 
     notificar(subasta_a_cancelar[:compradores], 
@@ -150,8 +153,6 @@ defmodule SubasteroServer do
       fn(comprador) -> comprador end)
 
     SubastasHome.delete(subastasHome, id_subasta)
-
-    matar_controlador(controladores, id_subasta)
 
     IO.puts "ATENCIÓN! SE HA CERRADO UNA SUBASTA: #{subasta_a_cancelar[:titulo]}"
 
@@ -170,20 +171,29 @@ defmodule SubasteroServer do
   end
 
   def handle_call({ :terminar_subasta, id_subasta }, _from, { subastasHome, compradores, controladores }) do
+    
+    IO.puts "TERMINO LA SUBASTA"
+
     subasta = SubastasHome.get subastasHome, id_subasta
+
+    IO.inspect subasta 
 
     pid_comprador = subasta[:pid_comprador]
 
-    notificar([%{pid: pid_comprador}], { :ok, "Has ganado la subasta: #{subasta[:titulo]}!"})
+    if pid_comprador != nil do 
+      notificar([pid_comprador], 
+        { :subasta_terminada, "Has ganado la subasta: #{subasta[:titulo]}!"},
+        fn(comprador) -> comprador end)
+    end
 
     perdedores_a_notificar = Enum.reject(subasta[:compradores], fn(pid) -> pid == pid_comprador end)
 
     notificar(Enum.map(perdedores_a_notificar, fn(comprador) -> Map.values(comprador) end),
-      { :nueva_oferta, "La subasta ha finalizado y has perdido: #{subasta[:titulo]}"})
+      { :subasta_terminada, "La subasta ha finalizado y has perdido: #{subasta[:titulo]}"})
 
-    SubastaHome.delete subastasHome, id_subasta
+    SubastasHome.delete subastasHome, id_subasta
 
-    IO.puts "ATENCION: La nueva oferta fue terminada con exito"
+    IO.puts "ATENCION: La subasta #{subasta[:titulo]} fue terminada con exito"
 
     {:reply, :ok, { subastasHome, compradores, controladores } }
   end
