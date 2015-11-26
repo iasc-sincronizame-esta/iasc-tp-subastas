@@ -37,7 +37,7 @@ defmodule SubasteroServer do
     GenServer.call server, { :terminar_subasta, id_subasta }
   end
 
-  # -----
+  # ---
 
   def notificar(interesados, mensaje, get_pid \\ fn(interesado) -> interesado[:pid] end) do
     Enum.each(interesados, fn(interesado) -> send get_pid.(interesado), mensaje end)
@@ -112,7 +112,6 @@ defmodule SubasteroServer do
     subasta = SubastasHome.get subastasHome, id_subasta
 
     if oferta > subasta[:precio_base] do
-
       subasta = Map.put(subasta, :compradores, Set.put(subasta[:compradores], pid_comprador))
 
       SubastasHome.upsert(subastasHome, id_subasta,
@@ -126,24 +125,26 @@ defmodule SubasteroServer do
        }
       )
 
-      notificar([%{pid: pid_comprador}], { :ok, "Tu oferta esta primero en #{subasta[:titulo]}!"})
+      notificar([%{pid: pid_comprador}], { :ok, "Tu oferta está ganando en #{subasta[:titulo]}"})
 
       compradores_a_notificar = Enum.reject(subasta[:compradores], fn(pid) -> pid == pid_comprador end)
 
       notificar(Enum.map(compradores_a_notificar, fn(comprador) -> Map.values(comprador) end),
-        { :nueva_oferta, "Hubo una nueva oferta en: #{subasta[:titulo]} de $ #{oferta}"})
+        { :nueva_oferta, "La subasta #{subasta[:titulo]} tiene un nuevo precio: $ #{oferta}"})
 
-      IO.puts "ATENCIÓN: La nueva oferta fue realizada con exito"
-
+      IO.puts "ATENCIÓN! UN USUARIO OFERTÓ EN #{subasta[:titulo]} por $ #{oferta}"
     else
       notificar([%{pid: pid_comprador}], {:ok, "Tu oferta fue insuficiente"})
+      IO.puts "ATENCIÓN! UN USUARIO OFERTÓ EN #{subasta[:titulo]} pero fue insuficiente"
     end
 
     {:reply, :ok, { subastasHome, compradores, controladores } }
   end
 
+  ###
+  ### CANCELAR SUBASTA
+  ###
   def handle_call({ :cancelar_subasta, id_subasta}, _from, { subastasHome, compradores, controladores }) do
-
     matar_controlador(controladores, id_subasta)
 
     subasta_a_cancelar = SubastasHome.get subastasHome, id_subasta
@@ -154,15 +155,10 @@ defmodule SubasteroServer do
 
     SubastasHome.delete(subastasHome, id_subasta)
 
-    IO.puts "ATENCIÓN! SE HA CERRADO UNA SUBASTA: #{subasta_a_cancelar[:titulo]}"
+    IO.puts "ATENCIÓN! SE HA CANCELADO UNA SUBASTA: #{subasta_a_cancelar[:titulo]}"
 
     {:reply, :ok, { subastasHome, compradores, controladores } }
 
-  end
-
-  def matar_controlador(controladores, id_subasta) do
-    controlador = Map.get(controladores, id_subasta)
-    Process.exit(controlador, :kill)
   end
 
   def handle_call({ :listar_subastas }, _from, { subastasHome, compradores, controladores }) do
@@ -172,7 +168,7 @@ defmodule SubasteroServer do
 
   def handle_call({ :terminar_subasta, id_subasta }, _from, { subastasHome, compradores, controladores }) do
     
-    IO.puts "TERMINO LA SUBASTA"
+    IO.puts "ATENCIÓN! TERMINÓ LA SUBASTA #{id_subasta}"
 
     subasta = SubastasHome.get subastasHome, id_subasta
 
@@ -193,9 +189,15 @@ defmodule SubasteroServer do
 
     SubastasHome.delete subastasHome, id_subasta
 
-    IO.puts "ATENCION: La subasta #{subasta[:titulo]} fue terminada con exito"
+    IO.puts "ATENCIÓN! La subasta #{subasta[:titulo]} terminó con éxito por #{subasta[:precio_base]}"
 
     {:reply, :ok, { subastasHome, compradores, controladores } }
   end
 
+  # ---------- Helpers ------------
+
+  def matar_controlador(controladores, id_subasta) do
+    controlador = Map.get(controladores, id_subasta)
+    Process.exit(controlador, :kill)
+  end
 end
