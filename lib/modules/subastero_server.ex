@@ -120,10 +120,12 @@ defmodule SubasteroServer do
 
       notificar([%{pid: pid_comprador}], { :ok, "Tu oferta está ganando en #{subasta[:titulo]}"})
 
-      compradores_a_notificar = Enum.reject(subasta[:compradores], fn(pid) -> pid == pid_comprador end)
+      compradores_a_notificar = Enum.reject(Map.values(compradores), fn(comp) -> comp[:pid] == pid_comprador end)
 
-      notificar(Enum.map(compradores_a_notificar, fn(comprador) -> %{pid: comprador} end),
-        { :nueva_oferta, "La subasta #{subasta[:titulo]} tiene un nuevo precio: $ #{oferta}"})
+      notificar(
+        compradores_a_notificar,
+        { :nueva_oferta, "La subasta #{subasta[:titulo]} tiene un nuevo precio: $ #{oferta}"}
+      )
 
       IO.puts "ATENCIÓN! UN USUARIO OFERTÓ EN #{subasta[:titulo]} por $ #{oferta}"
     else

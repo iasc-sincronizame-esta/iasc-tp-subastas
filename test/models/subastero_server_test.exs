@@ -33,7 +33,6 @@ defmodule SubasteroServerTest do
       SubasteroServer.crear_usuario subastero, unComprador, "Un comprador"
       SubasteroServer.crear_usuario subastero, self, "Yo"
 
-      SubasteroServer.ofertar subastero, id, self, 1000
       SubasteroServer.ofertar subastero, id, unComprador, 1001
 
       receive do
@@ -61,7 +60,7 @@ defmodule SubasteroServerTest do
       assert_receive {:voy_ganando, "Tu oferta está ganando en Notebook"}
     end
 
-    test "cuando la subasta termina, le avisa al ganador y a los perdedores (adjudicación con competencia)" do
+    test "cuando la subasta termina, le avisa al ganador que ganó y al resto que no (adjudicación con competencia)" do
       {:ok, subastero} = SubasteroServer.start_link
 
       parent = self
