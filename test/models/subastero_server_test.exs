@@ -93,4 +93,56 @@ defmodule SubasteroServerTest do
       assert_receive {:perdi, looser2}
     end
   end
+
+  defmodule Escenario3 do
+    use ExUnit.Case
+
+    test "cuando se cancela una subasta antes de su expiración y cancelación, nadie gana y todos son notificados" do
+      {:ok, subastero} = SubasteroServer.start_link
+
+      parent = self
+      unComprador = spawn fn ->
+        Process.flag(:trap_exit, true)
+        receive do
+          {:subasta_cancelada, mensaje} -> send(parent, {:se_cancelo_la_subasta, mensaje})
+        end
+      end
+
+      id_subasta = SubasteroServer.crear_subasta subastero, self, "Notebook", 999, 60000
+      SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
+      SubasteroServer.crear_usuario subastero, self, "Yo"
+
+      SubasteroServer.ofertar subastero, id_subasta, self, 1000
+      SubasteroServer.ofertar subastero, id_subasta, unComprador, 1001
+
+      SubasteroServer.cancelar_subasta subastero, id_subasta
+
+      receive do
+        { :subasta_cancelada, mensaje } ->
+          assert mensaje == "La subasta ha sido cancelada: Notebook"
+      end
+      assert_receive {:se_cancelo_la_subasta, "La subasta ha sido cancelada: Notebook"}
+    end
+  end
+
+  defmodule Escenario4 do
+    use ExUnit.Case
+
+    test "un usuario que se registra luego de creada una subasta, puede ofertar y ganar" do
+      {:ok, subastero} = SubasteroServer.start_link
+      unComprador = spawn fn -> receive do end end
+
+      SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
+      id_subasta = SubasteroServer.crear_subasta subastero, self, "Notebook", 999, 1000
+      SubasteroServer.crear_usuario subastero, self, "Yo"
+
+      SubasteroServer.ofertar subastero, id_subasta, unComprador, 1000
+      SubasteroServer.ofertar subastero, id_subasta, self, 1001
+
+      receive do
+        { :subasta_ganada, mensaje } ->
+          assert mensaje == "Has ganado la subasta: Notebook!"
+      end
+    end
+  end
 end
