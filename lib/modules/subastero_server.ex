@@ -24,6 +24,10 @@ defmodule SubasteroServer do
     GenServer.call server, { :ofertar, id_subasta, pid_comprador, oferta }
   end
 
+  def cancelar_subasta(server, id_subasta) do
+    GenServer.call server, { :cancelar_subasta, id_subasta }
+  end
+
   def listar_subastas(server) do
     GenServer.call server, { :listar_subastas }
   end
@@ -94,7 +98,7 @@ defmodule SubasteroServer do
 
     if oferta > subasta[:precio_base] do
 
-      Map.put(subasta, :compradores, Set.put(subasta[:compradores], pid_comprador))
+      subasta = Map.put(subasta, :compradores, Set.put(subasta[:compradores], pid_comprador))
 
       SubastasHome.upsert(subastasHome, id_subasta,
         %{
@@ -123,11 +127,25 @@ defmodule SubasteroServer do
     {:reply, :ok, { subastasHome, compradores } }
   end
 
-  ###
-  ### LISTAR SUBASTAS
-  ###
-  def handle_call({ :listar_subastas }, _from, { subastasHome, compradores }) do
-    subastas = SubastasHome.get_all subastasHome
-    {:reply, subastas, { subastasHome, compradores } }
+  def handle_call({ :cancelar_subasta, id_subasta}, _from, { subastas, compradores }) do
+
+    subasta_a_cancelar = Map.get(subastas, id_subasta)
+
+    notificar(subasta_a_cancelar[:compradores], 
+      { :subasta_cancelada, "La subasta ha sido cancelada: #{subasta_a_cancelar[:titulo]}"},
+      fn(comprador) -> comprador end)
+
+    subastas = Map.delete(subastas, id_subasta)
+
+    IO.puts "ATENCIÓN! SE HA CERRADO UNA SUBASTA: #{subasta_a_cancelar[:titulo]}"
+
+    {:reply, :ok, { subastas, compradores } }
+
   end
+
+  def handle_call({ :listar_subastas }, _from, { subastas, compradores }) do
+    subastas = SubastasHome.get_all subastasHome
+    {:reply, {:ok, subastas}, { subastasHome, compradores } }
+  end
+
 end
