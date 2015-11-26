@@ -59,12 +59,11 @@ defmodule SubasteroServer do
   ### CREAR USUARIO
   ###
   def handle_call({ :crear_usuario, pid_usuario, nombre }, _from,  { subastasHome, compradoresHome, controladores }) do
-    id_usuario =  :random.uniform(1000000)
+    id_usuario =  nombre
 
     datos_comprador =
       %{
-        pid: pid_usuario,
-        nombre: nombre
+        pid: pid_usuario
       }
 
     CompradoresHome.upsert(compradoresHome, id_usuario, datos_comprador)
