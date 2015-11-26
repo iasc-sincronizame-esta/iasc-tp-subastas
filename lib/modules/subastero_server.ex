@@ -51,13 +51,13 @@ defmodule SubasteroServer do
     { _, subastasHome } = SubastasHome.start_link
     compradores = %{}
     controladores = %{}
-    {:ok, {subastasHome, compradores, controladores}}
+    { :ok, {subastasHome, compradores, controladores } }
   end
 
   ###
   ### CREAR USUARIO
   ###
-  def handle_call({ :crear_usuario, pid_usuario, nombre }, _from,  { subastasHome, compradores, controladores}) do
+  def handle_call({ :crear_usuario, pid_usuario, nombre }, _from,  { subastasHome, compradores, controladores }) do
     id_usuario =  :random.uniform(1000000)
 
     datos_comprador =
@@ -70,13 +70,13 @@ defmodule SubasteroServer do
 
     IO.puts "ATENCIÓN! TENEMOS UN NUEVO USUARIO: #{nombre}"
 
-    {:reply, :ok, { subastasHome, compradores, controladores} }
+    { :reply, :ok, { subastasHome, compradores, controladores } }
   end
 
   ###
   ### CREAR SUBASTA
   ###
-  def handle_call({ :crear_subasta, pid_vendedor, titulo, precio_base, duracion }, _from, { subastasHome, compradores, controladores}) do
+  def handle_call({ :crear_subasta, pid_vendedor, titulo, precio_base, duracion }, _from, { subastasHome, compradores, controladores }) do
     id_subasta =  :random.uniform(1000000)
     datos_subasta =
       %{
@@ -89,7 +89,7 @@ defmodule SubasteroServer do
 
     SubastasHome.upsert subastasHome, id_subasta, datos_subasta
 
-    notificar(Map.values(compradores), { :nueva_subasta, datos_subasta} )
+    notificar(Map.values(compradores), { :nueva_subasta, datos_subasta })
 
     pid_controlador = crear_controlador_subasta(id_subasta, duracion)
 
@@ -161,13 +161,10 @@ defmodule SubasteroServer do
 
   end
 
-  def handle_call({ :listar_subastas }, _from, { subastasHome, compradores, controladores }) do
-    subastas = SubastasHome.get_all subastasHome
-    {:reply, {:ok, subastas}, { subastasHome, compradores, controladores } }
-  end
-
+  ###
+  ### TERMINAR SUBASTA
+  ###
   def handle_call({ :terminar_subasta, id_subasta }, _from, { subastasHome, compradores, controladores }) do
-    
     IO.puts "ATENCIÓN! TERMINÓ LA SUBASTA #{id_subasta}"
 
     subasta = SubastasHome.get subastasHome, id_subasta
@@ -192,6 +189,14 @@ defmodule SubasteroServer do
     IO.puts "ATENCIÓN! La subasta #{subasta[:titulo]} terminó con éxito por #{subasta[:precio_base]}"
 
     {:reply, :ok, { subastasHome, compradores, controladores } }
+  end
+
+  ###
+  ### LISTAR SUBASTAS (para debuggear)
+  ###
+  def handle_call({ :listar_subastas }, _from, { subastasHome, compradores, controladores }) do
+    subastas = SubastasHome.get_all subastasHome
+    {:reply, subastas, { subastasHome, compradores, controladores } }
   end
 
   # ---------- Helpers ------------
