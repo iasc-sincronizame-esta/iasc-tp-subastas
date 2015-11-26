@@ -2,6 +2,7 @@ require Integer
 require SubastasHome
 require CompradoresHome
 require ControladorSubasta
+require DateHelper
 
 defmodule SubasteroServer do
   use GenServer
@@ -82,8 +83,8 @@ defmodule SubasteroServer do
       %{
         titulo: titulo,
         precio_actual: precio_actual,
-        duracion: duracion,
-        compradores: HashSet.new
+        compradores: HashSet.new,
+        fecha_expiracion: DateHelper.ahora_mas(duracion)
       }
 
     SubastasHome.upsert subastasHome, id_subasta, datos_subasta
@@ -113,7 +114,7 @@ defmodule SubasteroServer do
         %{
           titulo: subasta[:titulo],
           precio_actual: oferta,
-          duracion: subasta[:duracion],
+          fecha_expiracion: subasta[:fecha_expiracion],
           id_comprador: id_comprador,
           compradores: subasta[:compradores]
        }

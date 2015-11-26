@@ -21,6 +21,7 @@ defmodule SubasteroServerTest do
         { :nueva_subasta, subasta } ->
           assert subasta[:titulo] == "Notebook"
           assert subasta[:precio_actual] == 999
+          assert subasta[:fecha_expiracion] != nil
       end
     end
 
@@ -186,11 +187,12 @@ defmodule SubasteroServerTest do
 
   defmodule Pruebas do
     use ExUnit.Case
+    use Timex
 
     test "probando la biblioteca timex" do
-      now = Timex.Date.now
+      now = Date.now
       IO.inspect now
-      IO.inspect (now |> Timex.Date.add({ 0, 10.5, 0 }))
+      IO.inspect (now |> Date.add(Time.to_timestamp(2998, :msecs)))
       # el valor del medio está en segundos
       # ¿pasar la duración a segundos?
     end
