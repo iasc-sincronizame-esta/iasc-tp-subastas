@@ -14,7 +14,7 @@ defmodule SubasteroServerTest do
     test "al publicar una subasta, le avisa a los compradores" do
       {:ok, subastero} = SubasteroServer.start_link
 
-      SubasteroServer.crear_usuario subastero, self, "Juan"
+      SubasteroServer.crear_usuario subastero, self, "Yo"
       SubasteroServer.crear_subasta subastero, self, "Notebook", 999, 60000
 
       receive do
@@ -24,24 +24,24 @@ defmodule SubasteroServerTest do
       end
     end
 
-    # test "cuando alguien oferta, se le avisa a los demás el nuevo precio" do
-    #   {:ok, subastero} = SubasteroServer.start_link
+    test "cuando alguien oferta, se le avisa a los demás el nuevo precio" do
+      {:ok, subastero} = SubasteroServer.start_link
 
-    #   recibirNotificacion = fn ->
-    #     receive do
-    #       { :nueva_subasta, _ } ->
-    #     end
-    #   end
+      unComprador = spawn fn -> receive do end end
 
-    #   compradorA = spawn recibirNotificacion
-    #   compradorB = spawn recibirNotificacion
-    #   SubasteroServer.crear_usuario subastero, compradorA, "Juan"
-    #   SubasteroServer.crear_usuario subastero, compradorB, "Perez"
+      id = SubasteroServer.crear_subasta subastero, self, "Notebook", 999, 60000
+      SubasteroServer.crear_usuario subastero, unComprador, "Un comprador"
+      SubasteroServer.crear_usuario subastero, self, "Yo"
 
-    #   SubasteroServer.crear_subasta subastero, self, "TP de IASC", 999, 60000
+      SubasteroServer.ofertar subastero, id, self, 1000
+      SubasteroServer.ofertar subastero, id, unComprador, 1001
+      
+      receive do
+        { :nueva_oferta, mensaje } ->
+          assert mensaje == "La subasta Notebook tiene un nuevo precio: $ 1001"
+      end
 
-    #   assert not Process.alive? compradorA
-    #   assert not Process.alive? compradorB
-    # end
+      Process.alive? unComprador # a él no se le avisó porque fue el que ofertó
+    end
   end
 end

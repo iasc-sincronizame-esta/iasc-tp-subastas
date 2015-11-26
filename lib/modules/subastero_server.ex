@@ -97,12 +97,7 @@ defmodule SubasteroServer do
 
     IO.puts "ATENCIÓN! TENEMOS UNA NUEVA SUBASTA: #{titulo}"
 
-    {:reply, :ok, { subastasHome, compradores, controladores } }
-  end
-
-  def crear_controlador_subasta(id_subasta, duracion) do
-    parent = self
-    spawn fn -> ControladorSubasta.empezar_subasta(parent, id_subasta, duracion) end
+    {:reply, id_subasta, { subastasHome, compradores, controladores } }
   end
 
   ###
@@ -129,7 +124,7 @@ defmodule SubasteroServer do
 
       compradores_a_notificar = Enum.reject(subasta[:compradores], fn(pid) -> pid == pid_comprador end)
 
-      notificar(Enum.map(compradores_a_notificar, fn(comprador) -> Map.values(comprador) end),
+      notificar(Enum.map(compradores_a_notificar, fn(comprador) -> %{pid: comprador} end),
         { :nueva_oferta, "La subasta #{subasta[:titulo]} tiene un nuevo precio: $ #{oferta}"})
 
       IO.puts "ATENCIÓN! UN USUARIO OFERTÓ EN #{subasta[:titulo]} por $ #{oferta}"
@@ -200,6 +195,11 @@ defmodule SubasteroServer do
   end
 
   # ---------- Helpers ------------
+
+  def crear_controlador_subasta(id_subasta, duracion) do
+    parent = self
+    spawn fn -> ControladorSubasta.empezar_subasta(parent, id_subasta, duracion) end
+  end
 
   def matar_controlador(controladores, id_subasta) do
     controlador = Map.get(controladores, id_subasta)
