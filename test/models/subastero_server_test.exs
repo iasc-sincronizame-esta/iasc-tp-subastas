@@ -43,5 +43,18 @@ defmodule SubasteroServerTest do
 
       Process.alive? unComprador # a él no se le avisó porque fue el que ofertó
     end
+
+    test "si alguien oferta y gana, se le avisa" do
+      {:ok, subastero} = SubasteroServer.start_link
+
+      id = SubasteroServer.crear_subasta subastero, self, "Notebook", 999, 500
+      SubasteroServer.crear_usuario subastero, self, "Yo"
+      SubasteroServer.ofertar subastero, id, self, 1000
+      
+      receive do
+        { :subasta_ganada, mensaje } ->
+          assert mensaje == "Has ganado la subasta: Notebook!"
+      end
+    end
   end
 end

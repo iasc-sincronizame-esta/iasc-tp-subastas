@@ -170,14 +170,14 @@ defmodule SubasteroServer do
 
     if pid_comprador != nil do 
       notificar([pid_comprador], 
-        { :subasta_terminada, "Has ganado la subasta: #{subasta[:titulo]}!"},
+        { :subasta_ganada, "Has ganado la subasta: #{subasta[:titulo]}!"},
         fn(comprador) -> comprador end)
     end
 
     perdedores_a_notificar = Enum.reject(subasta[:compradores], fn(pid) -> pid == pid_comprador end)
 
     notificar(Enum.map(perdedores_a_notificar, fn(comprador) -> Map.values(comprador) end),
-      { :subasta_terminada, "La subasta ha finalizado y has perdido: #{subasta[:titulo]}"})
+      { :subasta_perdida, "La subasta ha finalizado y has perdido: #{subasta[:titulo]}"})
 
     SubastasHome.delete subastasHome, id_subasta
 
