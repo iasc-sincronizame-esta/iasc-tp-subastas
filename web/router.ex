@@ -19,7 +19,7 @@ defmodule IascTpSubastas.Router do
     get "/", PageController, :index
 
     resources "/subastas", SubastaController, except: [:new, :edit]
-    resources "/ofertas", OfertaController, except: [:new, :edit]
+    resources "/ofertas", OfertaController, only: [:create]
     resources "/comprador", CompradorController, except: [:new, :edit]
   end
 
