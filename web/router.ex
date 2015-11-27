@@ -19,8 +19,8 @@ defmodule IascTpSubastas.Router do
     get "/", PageController, :index
 
     resources "/subastas", SubastaController, except: [:new, :edit]
-
-    post "/subastas/:id/ofertas", SubastaController, :ofertar
+    resources "/ofertas", OfertaController, only: [:create]
+    resources "/comprador", CompradorController, except: [:new, :edit]
   end
 
   # Other scopes may use custom stacks.

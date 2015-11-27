@@ -3,7 +3,7 @@ defmodule IascTpSubastas.Subasta do
 
   schema "subastas" do
     @primary_key { :id, :binary_id, autogenerate: true }
-    
+
     field :titulo, :string
     field :precio_actual, :integer
     field :fecha_expiracion, Timex.Ecto.DateTime

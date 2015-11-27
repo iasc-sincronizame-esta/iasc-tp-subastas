@@ -39,6 +39,10 @@ defmodule SubasteroServer do
     GenServer.call server, { :terminar_subasta, id_subasta }
   end
 
+  def obtener_subasta(server, id_subasta) do
+    GenServer.call server, { :obtener_subasta, id_subasta }
+  end
+
   # ---
 
   def notificar(interesados, mensaje, get_rname \\ fn(interesado) -> interesado[:rname] end) do
@@ -190,6 +194,10 @@ defmodule SubasteroServer do
   def handle_call({ :listar_subastas }, _from, { subastasHome, compradoresHome, controladores }) do
     subastas = SubastasHome.get_all subastasHome
     {:reply, subastas, { subastasHome, compradoresHome, controladores } }
+  end
+
+  def handle_call({:obtener_subasta, id_subasta}, _from, { subastasHome, compradoresHome, controladores }) do
+    { :reply, SubastasHome.get(subastasHome, id_subasta), { subastasHome, compradoresHome, controladores }}
   end
 
   # ---------- Helpers ------------
