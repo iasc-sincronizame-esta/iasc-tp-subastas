@@ -36,6 +36,10 @@ defmodule Home.PersistentSubastas do
         GenServer.call server, { :delete, id_subasta }
       end
 
+      def clean(server) do
+        GenServer.call server, { :clean }
+      end
+
       # -- Callbacks
 
       def init(:ok) do
@@ -88,7 +92,15 @@ defmodule Home.PersistentSubastas do
         { :reply, :ok, _state }
       end
 
-      defoverridable [init: 1, handle_call: 3, get_all: 1, get_all: 2, get: 2, insert: 2, update: 3, delete: 2]
+      def handle_call({ :clean }, _from, _state) do
+        IO.puts "ESTOY LIMPIANDO TODOOO"
+        all = IascTpSubastas.Repo.all(Subasta)
+        Enum.each all, fn(it) -> IascTpSubastas.Repo.delete!(it) end
+
+        { :reply, :ok, _state }
+      end
+
+      defoverridable [init: 1, handle_call: 3, get_all: 1, get_all: 2, get: 2, insert: 2, update: 3, delete: 2, clean: 1]
     end
   end
 end
