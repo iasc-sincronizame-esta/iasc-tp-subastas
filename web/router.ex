@@ -20,7 +20,6 @@ defmodule IascTpSubastas.Router do
 
     resources "/subastas", SubastaController, except: [:new, :edit]
     resources "/ofertas", OfertaController, only: [:create]
-    resources "/comprador", CompradorController, except: [:new, :edit]
   end
 
   # Other scopes may use custom stacks.
