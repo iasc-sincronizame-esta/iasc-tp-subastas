@@ -35,4 +35,6 @@ make test
 ```
 
 ## Ejemplo de phoenix.gen
+```
 mix phoenix.gen.json Subasta subastas titulo:string precio:integer duracion:integer
+```
