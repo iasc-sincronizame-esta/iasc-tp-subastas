@@ -6,30 +6,30 @@ defmodule IascTpSubastas.SubastaController do
   plug :scrub_params, "subasta" when action in [:create, :update]
 
   def index(conn, _params) do
-    subastas = Repo.all(Subasta)
+    subastas = Subastero.listar_subastas
     render(conn, "index.json", subastas: subastas)
   end
 
-  def create(conn, %{"subasta" => subasta_params}) do
-    changeset = Subasta.changeset(%Subasta{}, subasta_params)
+  def create(conn, %{"subasta" => %{"nombre" => nombre, "precio_base" => precio_base, "duracion" => duracion}}) do
+    id_subasta = Subastero.crear_subasta(nombre, precio_base, duracion)
+    subasta = Subastero.obtener_subasta(id_subasta)
 
-    case Repo.insert(changeset) do
-      {:ok, subasta} ->
-        conn
-        |> put_status(:created)
-        |> put_resp_header("location", subasta_path(conn, :show, subasta))
-        |> render("show.json", subasta: subasta)
-      {:error, changeset} ->
-        conn
-        |> put_status(:unprocessable_entity)
-        |> render(IascTpSubastas.ChangesetView, "error.json", changeset: changeset)
+    if subasta != nil do
+      conn
+      |> put_status(:created)
+      |> put_resp_header("location", subasta_path(conn, :show, subasta))
+      |> render("show.json", subasta: {id_subasta, subasta})
+    else
+      conn
+      |> put_status(:unprocessable_entity)
     end
   end
 
-  def show(conn, %{"id" => id}) do
-    subasta = Repo.get!(Subasta, id)
+   def show(conn, %{"id" => id}) do
+    subasta = Subastero.obtener_subasta(id)
     render(conn, "show.json", subasta: subasta)
   end
+
 
   def update(conn, %{"id" => id, "subasta" => subasta_params}) do
     subasta = Repo.get!(Subasta, id)
@@ -68,7 +68,7 @@ defmodule IascTpSubastas.SubastaController do
     cambio = %{
       "precio" => precio,
       "interesados" => subasta.interesados ++ [nombre],
-      "ganador_actual" => nombre 
+      "ganador_actual" => nombre
     }
     changeset = Subasta.changeset(subasta, cambio)
 
