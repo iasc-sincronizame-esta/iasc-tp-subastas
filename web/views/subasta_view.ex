@@ -15,12 +15,4 @@ defmodule IascTpSubastas.SubastaView do
       precio: subasta.precio_actual,
       fecha_expiracion: subasta.fecha_expiracion}
   end
-
-  def render("oferta.json", %{oferta: {id_oferta}}) do
-    id_oferta
-  end
-
-  def render("comprador.json", %{comprador: {id_comprador}}) do
-    id_comprador
-  end
 end
