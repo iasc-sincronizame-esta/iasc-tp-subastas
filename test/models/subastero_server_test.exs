@@ -16,7 +16,7 @@ defmodule SubasteroServerTest do
   test "al publicar una subasta, le avisa a los compradores" do
     {:ok, subastero} = SubasteroServer.start_link
 
-    Process.register self, Yo
+    :global.register_name Yo, self
     SubasteroServer.crear_usuario subastero, Yo, "Yo"
     SubasteroServer.crear_subasta subastero, "Notebook", 999, 60000
 
@@ -27,15 +27,15 @@ defmodule SubasteroServerTest do
         assert subasta[:fecha_expiracion] != nil
     end
 
-    Process.unregister Yo
+    :global.unregister_name Yo
   end
 
   test "cuando alguien oferta, se le avisa a los demás el nuevo precio" do
     {:ok, subastero} = SubasteroServer.start_link
 
     unComprador = spawn fn -> receive do end end
-    Process.register unComprador, UnCompradorasd
-    Process.register self, Yo 
+    :global.register_name UnCompradorasd, unComprador
+    :global.register_name Yo, self
 
     id = SubasteroServer.crear_subasta subastero, "Notebook", 999, 60000
     id_unComprador = SubasteroServer.crear_usuario subastero, UnCompradorasd, "Un comprador"
@@ -48,8 +48,8 @@ defmodule SubasteroServerTest do
         assert mensaje == "La subasta Notebook tiene un nuevo precio: $ 1001"
     end
 
-    Process.unregister UnCompradorasd
-    Process.unregister Yo
+    :global.unregister_name UnCompradorasd
+    :global.unregister_name Yo
   end
 
   test "cuando alguien oferta con un valor mayor, se le avisa que su oferta fue aceptada" do
@@ -62,7 +62,7 @@ defmodule SubasteroServerTest do
         {:ok, mensaje} -> send(parent, {:voy_ganando, mensaje})
       end
     end
-    Process.register unComprador, UnComprador
+    :global.register_name UnComprador, unComprador
 
     id = SubasteroServer.crear_subasta subastero, "Notebook", 999, 60000
     id_unComprador = SubasteroServer.crear_usuario subastero, UnComprador, "Un comprador"
@@ -85,9 +85,9 @@ defmodule SubasteroServerTest do
 
     looser1 = spawn_link esperarAPerder
     looser2 = spawn_link esperarAPerder
-    Process.register looser1, Looser1
-    Process.register looser2, Looser2
-    Process.register self, Yo
+    :global.register_name Looser1, looser1
+    :global.register_name Looser2, looser2
+    :global.register_name Yo, self
 
     id_looser1 = SubasteroServer.crear_usuario subastero, Looser1, "Perdedor 1"
     id_looser2 = SubasteroServer.crear_usuario subastero, Looser2, "Perdedor 2"
@@ -106,7 +106,7 @@ defmodule SubasteroServerTest do
     assert_receive {:perdi, looser1}
     assert_receive {:perdi, looser2}
 
-    Process.unregister Yo
+    :global.unregister_name Yo
   end
 
   test "la subasta puede terminar sin ningún ganador" do
@@ -131,8 +131,8 @@ defmodule SubasteroServerTest do
         {:subasta_cancelada, mensaje} -> send(parent, {:se_cancelo_la_subasta, mensaje})
       end
     end
-    Process.register unComprador, UnComprador
-    Process.register self, Yo
+    :global.register_name UnComprador, unComprador
+    :global.register_name Yo, self
 
     id_subasta = SubasteroServer.crear_subasta subastero, "Notebook", 999, 60000
     id_unComprador = SubasteroServer.crear_usuario subastero, UnComprador, "Comprador 1"
@@ -149,14 +149,14 @@ defmodule SubasteroServerTest do
     end
     assert_receive {:se_cancelo_la_subasta, "La subasta ha sido cancelada: Notebook"}
 
-    Process.unregister Yo
+    :global.unregister_name Yo
   end
 
   test "un usuario que se registra luego de creada una subasta, puede ofertar y ganar" do
     {:ok, subastero} = SubasteroServer.start_link
     unComprador = spawn fn -> receive do end end
-    Process.register unComprador, UnComprador
-    Process.register self, Yo
+    :global.register_name UnComprador, unComprador
+    :global.register_name Yo, self
 
     id_unComprador = SubasteroServer.crear_usuario subastero, UnComprador, "Comprador 1"
     id_subasta = SubasteroServer.crear_subasta subastero, "Notebook", 999, 500
@@ -170,15 +170,15 @@ defmodule SubasteroServerTest do
         assert mensaje == "Has ganado la subasta: Notebook!"
     end
 
-    Process.unregister UnComprador
-    Process.unregister Yo
+    :global.unregister_name UnComprador
+    :global.unregister_name Yo
   end
 
   test "puede haber varias subastas funcionando simultáneamente" do
     {:ok, subastero} = SubasteroServer.start_link
     unComprador = spawn fn -> receive do end end
-    Process.register unComprador, UnComprador
-    Process.register self, Yo
+    :global.register_name UnComprador, unComprador
+    :global.register_name Yo, self
 
     SubasteroServer.crear_usuario subastero, UnComprador, "Comprador 1"
     subasta_notebook = SubasteroServer.crear_subasta subastero, "Notebook", 999, 300
@@ -198,7 +198,7 @@ defmodule SubasteroServerTest do
         assert mensaje == "Has ganado la subasta: Campera de cuero para romper la noche!"
     end
 
-    Process.unregister UnComprador
-    Process.unregister Yo
+    :global.unregister_name UnComprador
+    :global.unregister_name Yo
   end
 end
