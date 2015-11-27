@@ -6,10 +6,6 @@ defmodule IascTpSubastas.OfertaController do
   plug :scrub_params, "oferta" when action in [:create]
 
   def create(conn, %{"id_subasta" => id_subasta, "id_comprador" => id_comprador, "oferta" => oferta}) do
-    # {id_subasta, _} = Integer.parse(id_subasta)
-    # {id_comprador, _} = Integer.parse(id_comprador)
-    # {oferta, _} = Integer.parse(oferta)
-
     result = Subastero.ofertar(id_subasta, id_comprador, oferta)
 
     if oferta != nil do
