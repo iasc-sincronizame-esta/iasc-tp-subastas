@@ -56,32 +56,4 @@ defmodule IascTpSubastas.SubastaController do
 
     send_resp(conn, :no_content, "")
   end
-
-  # ---
-  # Custom
-  # ---
-
-  def ofertar(conn, %{"id" => id, "oferta" => oferta}) do
-    subasta = Repo.get!(Subasta, id)
-
-    precio = oferta["precio"]
-    nombre = oferta["nombre"]
-
-    cambio = %{
-      "precio" => precio,
-      "interesados" => subasta.interesados ++ [nombre],
-      "ganador_actual" => nombre
-    }
-    changeset = Subasta.changeset(subasta, cambio)
-
-    case Repo.update(changeset) do
-      {:ok, subasta} ->
-        conn
-        |> send_resp(201, "")
-      {:error, changeset} ->
-        conn
-        |> put_status(:unprocessable_entity)
-        |> render(IascTpSubastas.ChangesetView, "error.json", changeset: changeset)
-    end
-  end
 end
