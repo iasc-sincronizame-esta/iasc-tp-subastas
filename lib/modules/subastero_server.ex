@@ -15,8 +15,8 @@ defmodule SubasteroServer do
     GenServer.start(__MODULE__, :ok, opts)
   end
 
-  def crear_usuario(server, pid_usuario, nombre) do
-    GenServer.call server, { :crear_usuario, pid_usuario, nombre }
+  def crear_usuario(server, rname_usuario, nombre) do
+    GenServer.call server, { :crear_usuario, rname_usuario, nombre }
   end
 
   def crear_subasta(server, titulo, precio_actual, duracion) do
@@ -41,8 +41,8 @@ defmodule SubasteroServer do
 
   # ---
 
-  def notificar(interesados, mensaje, get_pid \\ fn(interesado) -> interesado[:pid] end) do
-    Enum.each(interesados, fn(interesado) -> send get_pid.(interesado), mensaje end)
+  def notificar(interesados, mensaje, get_rname \\ fn(interesado) -> interesado[:rname] end) do
+    Enum.each(interesados, fn(interesado) -> send get_rname.(interesado), mensaje end)
   end
 
   # ---------- Callbacks ------------
@@ -59,10 +59,11 @@ defmodule SubasteroServer do
   ###
   ### CREAR USUARIO
   ###
-  def handle_call({ :crear_usuario, pid_usuario, nombre }, _from,  { subastasHome, compradoresHome, controladores }) do
+  def handle_call({ :crear_usuario, rname_usuario, nombre }, _from, { subastasHome, compradoresHome, controladores }) do
     datos_comprador =
       %{
-        pid: pid_usuario
+        rname: rname_usuario,
+        nombre: nombre
       }
 
     id_usuario = CompradoresHome.insert(compradoresHome, datos_comprador)
@@ -118,7 +119,7 @@ defmodule SubasteroServer do
       )
       notificar([comprador], { :ok, "Tu oferta está ganando en #{subasta[:titulo]}"})
 
-      compradores_a_notificar = Enum.reject(CompradoresHome.get_all(compradoresHome), fn(comp) -> comp[:pid] == comprador[:pid] end)
+      compradores_a_notificar = Enum.reject(CompradoresHome.get_all(compradoresHome), fn(comp) -> comp[:rname] == comprador[:rname] end)
 
       notificar(
         compradores_a_notificar,

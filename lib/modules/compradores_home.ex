@@ -1,5 +1,5 @@
 require Integer
 
 defmodule CompradoresHome do
-  use Home.InMemory
+  use Home.PersistentComprador
 end
