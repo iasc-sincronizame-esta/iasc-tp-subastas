@@ -25,8 +25,11 @@ defmodule IascTpSubastas.SubastaController do
   end
 
    def show(conn, %{"id" => id}) do
-    subasta = Subastero.obtener_subasta(id)
-    render(conn, "show.json", subasta: subasta)
+    {id_subasta, _} = Integer.parse(id)
+    subasta = Subastero.obtener_subasta(id_subasta)
+    conn
+    |> put_status(:ok)
+    |> render("show.json", subasta: {id_subasta, subasta})
   end
 
 
