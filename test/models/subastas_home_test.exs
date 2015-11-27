@@ -3,51 +3,51 @@ require SubastasHome
 defmodule SubastasHomeTest do
   use ExUnit.Case
 
-  test "upsert, when no there is no value for that key" do
+  test "insert" do
     {:ok, home} = SubastasHome.start_link
 
-    SubastasHome.upsert(home, 1, "datos")
-    assert SubastasHome.get(home, 1) == "datos"
+    id = SubastasHome.insert(home, "datos")
+    assert SubastasHome.get(home, id) == "datos"
   end
 
-  test "upsert, when there was another value for that key stored" do
+  test "update" do
     {:ok, home} = SubastasHome.start_link
 
-    SubastasHome.upsert(home, 1, "datos")
-    SubastasHome.upsert(home, 1, "datos2")
-    assert SubastasHome.get(home, 1) == "datos2"
+    id = SubastasHome.insert(home, "datos")
+    SubastasHome.update(home, id, "datos2")
+    assert SubastasHome.get(home, id) == "datos2"
   end
 
   test "get, when there is no value for that key" do
     {:ok, home} = SubastasHome.start_link
 
-    assert SubastasHome.get(home, 1) == nil
+    assert SubastasHome.get(home, 123) == nil
   end
 
   test "delete" do
     {:ok, home} = SubastasHome.start_link
 
-    SubastasHome.upsert(home, 1, "datos")
-    SubastasHome.delete(home, 1)
-    assert SubastasHome.get(home, 1) == nil
+    id = SubastasHome.insert(home, "datos")
+    SubastasHome.delete(home, id)
+    assert SubastasHome.get(home, id) == nil
   end
 
   test "get_all" do
     {:ok, home} = SubastasHome.start_link
 
-    SubastasHome.upsert(home, 1, "datos")
-    SubastasHome.upsert(home, 2, "datos2")
+    SubastasHome.insert(home, "datos")
+    SubastasHome.insert(home, "datos2")
 
-    assert SubastasHome.get_all(home) == %{ 1 => "datos", 2 => "datos2"}
+    assert SubastasHome.get_all(home) == ["datos", "datos2"]
   end
 
   test "get_all/1" do
     {:ok, home} = SubastasHome.start_link
 
-    SubastasHome.upsert(home, 1, "datos")
-    SubastasHome.upsert(home, 2, "datos2")
-    SubastasHome.upsert(home, 3, "datos3")
+    id1 = SubastasHome.insert(home, "datos")
+    id2 = SubastasHome.insert(home, "datos2")
+    SubastasHome.insert(home, "datos3")
 
-    assert SubastasHome.get_all(home, [1, 2]) == %{ 1 => "datos", 2 => "datos2"}
+    assert SubastasHome.get_all(home, [id1, id2]) == ["datos", "datos2"]
   end
 end

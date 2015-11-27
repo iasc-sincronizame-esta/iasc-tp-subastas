@@ -36,7 +36,8 @@ defmodule IascTpSubastas.Mixfile do
      {:phoenix_html, "~> 2.1"},
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:cowboy, "~> 1.0"},
-     {:timex, "~> 1.0.0-rc3"}]
+     {:timex, ">= 0.16.2"},
+     {:timex_ecto, ">= 0.4.0"}]
   end
 
   # Aliases are shortcut or tasks specific to the current project.
