@@ -10,11 +10,13 @@
 /test/models
 ```
 
-## Instalar
+## Configuración
 ```bash
 mix deps.get
 mix ecto.create
-# instalar mongodb
+# tener mongodb en localhost:27017
+# sudo hostname localhost
+# (para cambiar temporalmente el hostname)
 ```
 
 ## Correr el servidor
@@ -22,9 +24,14 @@ mix ecto.create
 make server
 ```
 
+## Correr un cliente
+```
+make client
+```
+
 ## Correr los tests
 ```
-MIX_ENV=test mix ecto.drop ; mix test
+make test
 ```
 
 ## Ejemplo de phoenix.gen
