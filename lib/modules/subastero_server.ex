@@ -48,10 +48,10 @@ defmodule SubasteroServer do
   def notificar(interesados, mensaje, get_rname \\ fn(interesado) -> interesado[:rname] end) do
     Enum.each(interesados, fn(interesado) ->
       rname = get_rname.(interesado)
-      pid = Process.whereis rname
 
-      if pid != nil do
-        send get_rname.(interesado), mensaje
+      pid = :global.whereis_name(rname)
+      if pid != :undefined do
+        send pid, mensaje
       end
     end)
   end
@@ -98,7 +98,7 @@ defmodule SubasteroServer do
 
     id_usuario = CompradoresHome.insert(compradoresHome, datos_comprador)
 
-    IO.puts "ATENCIÓN! TENEMOS UN NUEVO USUARIO: #{nombre}"
+    IO.puts "ATENCIÓN! TENEMOS UN NUEVO USUARIO: #{nombre}, #{id_usuario}"
 
     { :reply, id_usuario, { subastasHome, compradoresHome, controladores } }
   end
@@ -196,7 +196,7 @@ defmodule SubasteroServer do
 
     if subasta[:id_comprador] != nil do
       comprador = CompradoresHome.get(compradoresHome, subasta[:id_comprador])
-      
+
       notificar([comprador],
         { :subasta_ganada, "Has ganado la subasta: #{subasta[:titulo]}!"})
     end
