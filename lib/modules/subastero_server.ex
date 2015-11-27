@@ -45,8 +45,17 @@ defmodule SubasteroServer do
 
   # ---
 
+  # def notificar(interesados, mensaje, get_rname \\ fn(interesado) -> interesado[:rname] end) do
+  #   Enum.each(interesados, fn(interesado) -> send get_rname.(interesado), mensaje end)
+  # end
+
   def notificar(interesados, mensaje, get_rname \\ fn(interesado) -> interesado[:rname] end) do
-    Enum.each(interesados, fn(interesado) -> send get_rname.(interesado), mensaje end)
+    Enum.each(interesados, fn(interesado) ->
+      rname = get_rname.(interesado)
+      pid = :global.whereis_name(:Aldana)
+      send pid, mensaje
+      IO.puts "cliente notificado"
+    end)
   end
 
   # ---------- Callbacks ------------
@@ -91,7 +100,7 @@ defmodule SubasteroServer do
 
     id_subasta = SubastasHome.insert subastasHome, datos_subasta
 
-    notificar(CompradoresHome.get_all(compradoresHome), { :nueva_subasta, datos_subasta })
+    notificar(CompradoresHome.get_all(compradoresHome), { :nueva_subasta, datos_subasta.titulo })
 
     pid_controlador = crear_controlador_subasta(id_subasta, duracion)
 
@@ -171,7 +180,7 @@ defmodule SubasteroServer do
 
     if subasta[:id_comprador] != nil do
       comprador = CompradoresHome.get(compradoresHome, subasta[:id_comprador])
-      
+
       notificar([comprador],
         { :subasta_ganada, "Has ganado la subasta: #{subasta[:titulo]}!"})
     end

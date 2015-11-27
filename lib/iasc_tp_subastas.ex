@@ -7,6 +7,7 @@ defmodule IascTpSubastas do
     if System.get_env("type") == "client" do
       server = System.get_env "server"
       nick = System.get_env "nick"
+
       IO.puts "Connecting client #{nick} to #{server}"
       Node.connect(:"server@aldanaqm")
 
