@@ -61,9 +61,27 @@ defmodule SubasteroServer do
   def init(:ok) do
     IO.puts "El subastero ha sido iniciado"
 
-    subastasHome = {:global, GlobalSubastasHome}
-    compradoresHome = {:global, GlobalCompradoresHome}
+    { :ok, subastasHome } = SubastasHome.start_link
+    { :ok, compradoresHome } = CompradoresHome.start_link
     controladores = %{}
+
+    subastas_activas = SubastasHome.get_all subastasHome
+    Enum.each subastas_activas, fn(it) ->
+      tiempo_restante = DateHelper.cuanto_falta_para it[:fecha_expiracion]
+
+      if tiempo_restante > 0 do
+        nueva_expiracion = DateHelper.fecha_mas it[:fecha_expiracion], 5000
+        it = Map.put it, :fecha_expiracion, nueva_expiracion
+        SubastasHome.update subastasHome, it[:id], it
+
+        IO.puts "---"
+        IO.puts "Encontré en la BD la subasta #{it[:id]} y veo que le faltan #{tiempo_restante}ms. Sumo 5s y la levanto..."
+        IO.puts "---"
+        pid_controlador = crear_controlador_subasta(it[:id], tiempo_restante)
+        controladores = Map.put(controladores, it[:id], pid_controlador)
+      end
+    end
+
     { :ok, { subastasHome, compradoresHome, controladores } }
   end
 
@@ -106,7 +124,7 @@ defmodule SubasteroServer do
 
     IO.puts "ATENCIÓN! TENEMOS UNA NUEVA SUBASTA: #{titulo}"
 
-    {:reply, id_subasta, { subastasHome, compradoresHome, controladores } }
+    { :reply, id_subasta, { subastasHome, compradoresHome, controladores } }
   end
 
   ###
@@ -143,7 +161,7 @@ defmodule SubasteroServer do
       IO.puts "ATENCIÓN! UN USUARIO OFERTÓ EN #{subasta[:titulo]} pero fue insuficiente"
     end
 
-    {:reply, :ok, { subastasHome, compradoresHome, controladores } }
+    { :reply, :ok, { subastasHome, compradoresHome, controladores } }
   end
 
   ###
@@ -162,7 +180,7 @@ defmodule SubasteroServer do
 
     IO.puts "ATENCIÓN! SE HA CANCELADO UNA SUBASTA: #{subasta_a_cancelar[:titulo]}"
 
-    {:reply, :ok, { subastasHome, compradoresHome, controladores } }
+    { :reply, :ok, { subastasHome, compradoresHome, controladores } }
   end
 
   ###
@@ -193,19 +211,27 @@ defmodule SubasteroServer do
 
     IO.puts "ATENCIÓN! La subasta #{subasta[:titulo]} terminó con éxito por #{subasta[:precio_actual]}"
 
-    {:reply, :ok, { subastasHome, compradoresHome, controladores } }
+    { :reply, :ok, { subastasHome, compradoresHome, controladores } }
   end
 
   ###
-  ### LISTAR SUBASTAS (para debuggear)
+  ### OBTENER SUBASTA
   ###
-  def handle_call({ :listar_subastas }, _from, { subastasHome, compradoresHome, controladores }) do
-    subastas = SubastasHome.get_all subastasHome
-    {:reply, subastas, { subastasHome, compradoresHome, controladores } }
-  end
-
   def handle_call({:obtener_subasta, id_subasta}, _from, { subastasHome, compradoresHome, controladores }) do
     { :reply, SubastasHome.get(subastasHome, id_subasta), { subastasHome, compradoresHome, controladores }}
+  end
+
+  ###
+  ### PARA DEBUGGEAR...
+  ###
+
+  def handle_call({ :listar_subastas }, _from, { subastasHome, compradoresHome, controladores }) do
+    subastas = SubastasHome.get_all subastasHome
+    { :reply, subastas, { subastasHome, compradoresHome, controladores } }
+  end
+
+  def handle_call({ :matate }, _from, _state) do
+    { :stop, :normal, _state }
   end
 
   # ---------- Helpers ------------
