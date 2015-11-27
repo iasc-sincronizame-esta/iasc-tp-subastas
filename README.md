@@ -1,23 +1,31 @@
 # IascTpSubastas
 
-To start your Phoenix app:
+## Cosas importantes
+- El código nuestro está en:
+```
+/lib
+/lib/modules
+/web/controllers/subasta_controller.ex
+/web/models/subasta.ex
+/test/models
+```
 
-  1. Install dependencies with `mix deps.get`
-  2. Create and migrate your database with `mix ecto.create && mix ecto.migrate`
-  3. Start Phoenix endpoint with `mix phoenix.server`
+## Instalar
+```bash
+mix deps.get
+mix ecto.create
+# instalar mongodb
+```
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+## Correr el servidor
+```bash
+make server
+```
 
-Ready to run in production? Please [check our deployment guides](http://www.phoenixframework.org/docs/deployment).
+## Correr los tests
+```
+MIX_ENV=test mix ecto.drop ; mix test
+```
 
-## Learn more
-
-  * Official website: http://www.phoenixframework.org/
-  * Guides: http://phoenixframework.org/docs/overview
-  * Docs: http://hexdocs.pm/phoenix
-  * Mailing list: http://groups.google.com/group/phoenix-talk
-  * Source: https://github.com/phoenixframework/phoenix
-
-# Crear modelo
+## Ejemplo de phoenix.gen
 mix phoenix.gen.json Subasta subastas titulo:string precio:integer duracion:integer
-

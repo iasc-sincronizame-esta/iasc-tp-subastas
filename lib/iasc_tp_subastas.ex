@@ -14,7 +14,9 @@ defmodule IascTpSubastas do
       # Here you could define other workers and supervisors as children
       # worker(IascTpSubastas.Worker, [arg1, arg2, arg3]),
 
-      worker(SubasteroServer, [[name: {:global, GlobalSubastero}]], restart: :transient)
+      worker(SubasteroServer, [[name: {:global, GlobalSubastero}]], restart: :transient),
+      worker(SubastasHome, [[name: {:global, GlobalSubastasHome}]], restart: :transient),
+      worker(CompradoresHome, [[name: {:global, GlobalCompradoresHome}]], restart: :transient)
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
