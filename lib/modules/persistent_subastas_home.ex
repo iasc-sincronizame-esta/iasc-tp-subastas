@@ -93,7 +93,6 @@ defmodule Home.PersistentSubastas do
       end
 
       def handle_call({ :clean }, _from, _state) do
-        IO.puts "ESTOY LIMPIANDO TODOOO"
         all = IascTpSubastas.Repo.all(Subasta)
         Enum.each all, fn(it) -> IascTpSubastas.Repo.delete!(it) end
 
