@@ -8,7 +8,7 @@ defmodule IascTpSubastas do
       server = System.get_env "server"
 
       IO.puts "Connecting client to #{server} ..."
-      Node.connect(:"server@aldanaqm")
+      Node.connect(:"#{server}")
 
       {:ok, self}
     else

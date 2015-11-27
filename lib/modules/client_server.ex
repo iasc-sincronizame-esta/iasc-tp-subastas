@@ -6,7 +6,7 @@ defmodule ClientServer do
     crear_usuario = fn()->
       Subastero.crear_usuario(rname, "#{nombre}")
     end
-    Node.spawn(:"server@aldanaqm", crear_usuario)
+    Node.spawn(:"#{server}", crear_usuario)
     IO.puts "Connected. Listenning..."
 
     listen(nodo, pid)
