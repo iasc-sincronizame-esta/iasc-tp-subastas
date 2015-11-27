@@ -54,8 +54,8 @@ defmodule SubasteroServer do
   def init(:ok) do
     IO.puts "El subastero ha sido iniciado"
 
-    { :ok, subastasHome } = SubastasHome.start_link
-    { :ok, compradoresHome} = CompradoresHome.start_link
+    subastasHome = {:global, GlobalSubastasHome}
+    compradoresHome = {:global, GlobalCompradoresHome}
     controladores = %{}
     { :ok, { subastasHome, compradoresHome, controladores } }
   end
