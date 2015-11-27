@@ -1,13 +1,13 @@
 defmodule ClientServer do
   def start(nombre, nodo, pid) do
+    server = System.get_env "server"
     rname = :"#{nombre}"
-    registrar_nombre = fn()->
-      :global.register_name(rname, pid)
+    :global.register_name(rname, pid)
+    crear_usuario = fn()->
+      Subastero.crear_usuario(:Aldana, "#{nombre}")
     end
-    Node.spawn(nodo, registrar_nombre)
-    IO.puts "Nombre global registrado"
-    # Subastero.crear_usuario(rname, nombre)
-    IO.puts "http://127.0.0.1:4000/subastas"
+    Node.spawn(:"server@aldanaqm", crear_usuario)
+    IO.puts "Connected. Listenning..."
 
     listen(nodo, pid)
   end
