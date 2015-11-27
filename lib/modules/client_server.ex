@@ -14,7 +14,12 @@ defmodule ClientServer do
 
   def listen(nodo, pid) do
     receive do
-      {:nueva_subasta, datos_subasta} -> IO.inspect datos_subasta
+      {:nueva_subasta, subasta} -> IO.puts "Nueva subasta: #{subasta[:titulo]}. Precio base: $#{subasta[:precio_actual]}."
+      {:ok, mensaje} -> IO.inspect mensaje
+      {:nueva_oferta, mensaje } -> IO.inspect mensaje
+      {:subasta_cancelada, mensaje } -> IO.inspect mensaje
+      {:subasta_ganada, mensaje } -> IO.inspect mensaje
+      {:subasta_perdida, mensaje } -> IO.inspect mensaje
       _ -> IO.puts "No entiendo el mensaje"
     end
 

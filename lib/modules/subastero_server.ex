@@ -78,7 +78,7 @@ defmodule SubasteroServer do
 
     id_usuario = CompradoresHome.insert(compradoresHome, datos_comprador)
 
-    IO.puts "ATENCIÓN! TENEMOS UN NUEVO USUARIO: #{nombre}"
+    IO.puts "ATENCIÓN! TENEMOS UN NUEVO USUARIO: #{nombre}, #{id_usuario}"
 
     { :reply, id_usuario, { subastasHome, compradoresHome, controladores } }
   end
