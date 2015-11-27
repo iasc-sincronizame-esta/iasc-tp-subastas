@@ -3,9 +3,9 @@ defmodule Subastero do
     SubasteroServer.listar_subastas({:global, GlobalSubastero})
   end
 
-  def crear_usuario(pid_usuario, nombre) do
-    SubasteroServer.crear_usuario({:global, GlobalSubastero}, pid_usuario, nombre)
-  end
+  # def crear_usuario(pid_usuario, nombre) do
+  #   SubasteroServer.crear_usuario({:global, GlobalSubastero}, pid_usuario, nombre)
+  # end
 
   def crear_subasta(titulo, precio_actual, duracion) do
     SubasteroServer.crear_subasta({:global, GlobalSubastero}, titulo, precio_actual, duracion)

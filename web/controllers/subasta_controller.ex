@@ -17,7 +17,7 @@ defmodule IascTpSubastas.SubastaController do
     if subasta != nil do
       conn
       |> put_status(:created)
-      |> render("show.json", subasta: {id_subasta, subasta})
+      |> render("show.json", subasta: subasta)
     else
       conn
       |> put_status(:unprocessable_entity)
