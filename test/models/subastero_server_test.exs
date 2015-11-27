@@ -8,7 +8,7 @@ defmodule SubasteroServerTest do
       {:ok, subastero} = SubasteroServer.start_link
 
       subastas = SubasteroServer.listar_subastas subastero
-      assert subastas == %{}
+      assert subastas == []
     end
 
     test "al publicar una subasta, le avisa a los compradores" do
@@ -31,8 +31,8 @@ defmodule SubasteroServerTest do
       unComprador = spawn fn -> receive do end end
 
       id = SubasteroServer.crear_subasta subastero, "Notebook", 999, 60000
-      {:ok, id_unComprador } = SubasteroServer.crear_usuario subastero, unComprador, "Un comprador"
-      {:ok, id_yo } = SubasteroServer.crear_usuario subastero, self, "Yo"
+      id_unComprador = SubasteroServer.crear_usuario subastero, unComprador, "Un comprador"
+      id_yo = SubasteroServer.crear_usuario subastero, self, "Yo"
 
       SubasteroServer.ofertar subastero, id, id_unComprador, 1001
 
@@ -54,7 +54,7 @@ defmodule SubasteroServerTest do
       end
 
       id = SubasteroServer.crear_subasta subastero, "Notebook", 999, 60000
-      {:ok, id_unComprador } = SubasteroServer.crear_usuario subastero, unComprador, "Un comprador"
+      id_unComprador = SubasteroServer.crear_usuario subastero, unComprador, "Un comprador"
 
       SubasteroServer.ofertar subastero, id, id_unComprador, 1000
 
@@ -75,9 +75,9 @@ defmodule SubasteroServerTest do
       looser1 = spawn_link esperarAPerder
       looser2 = spawn_link esperarAPerder
 
-      {:ok, id_looser1 } = SubasteroServer.crear_usuario subastero, looser1, "Perdedor 1"
-      {:ok, id_looser2 } = SubasteroServer.crear_usuario subastero, looser2, "Perdedor 2"
-      {:ok, id_ganador } = SubasteroServer.crear_usuario subastero, self, "Ganador"
+      id_looser1 = SubasteroServer.crear_usuario subastero, looser1, "Perdedor 1"
+      id_looser2 = SubasteroServer.crear_usuario subastero, looser2, "Perdedor 2"
+      id_ganador = SubasteroServer.crear_usuario subastero, self, "Ganador"
 
       id = SubasteroServer.crear_subasta subastero, "Notebook", 100, 500
 
@@ -102,7 +102,7 @@ defmodule SubasteroServerTest do
       after 50 -> end
 
       subastas = SubasteroServer.listar_subastas subastero
-      assert subastas == %{}
+      assert subastas == []
     end
   end
 
@@ -121,8 +121,8 @@ defmodule SubasteroServerTest do
       end
 
       id_subasta = SubasteroServer.crear_subasta subastero, "Notebook", 999, 60000
-      {:ok, id_unComprador } = SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
-      {:ok, id_yo } = SubasteroServer.crear_usuario subastero, self, "Yo"
+      id_unComprador = SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
+      id_yo = SubasteroServer.crear_usuario subastero, self, "Yo"
 
       SubasteroServer.ofertar subastero, id_subasta, id_yo, 1000
       SubasteroServer.ofertar subastero, id_subasta, id_unComprador, 1001
@@ -144,9 +144,9 @@ defmodule SubasteroServerTest do
       {:ok, subastero} = SubasteroServer.start_link
       unComprador = spawn fn -> receive do end end
 
-      {:ok, id_unComprador } = SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
+      id_unComprador = SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
       id_subasta = SubasteroServer.crear_subasta subastero, "Notebook", 999, 500
-      {:ok, id_yo } = SubasteroServer.crear_usuario subastero, self, "Yo"
+      id_yo = SubasteroServer.crear_usuario subastero, self, "Yo"
 
       SubasteroServer.ofertar subastero, id_subasta, id_unComprador, 1000
       SubasteroServer.ofertar subastero, id_subasta, id_yo, 1001
@@ -165,10 +165,10 @@ defmodule SubasteroServerTest do
       {:ok, subastero} = SubasteroServer.start_link
       unComprador = spawn fn -> receive do end end
 
-      {:ok, id_unComprador } = SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
+      id_unComprador = SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
       subasta_notebook = SubasteroServer.crear_subasta subastero, "Notebook", 999, 300
       subasta_campera = SubasteroServer.crear_subasta subastero, "Campera de cuero para romper la noche", 200, 500
-      {:ok, id_yo } = SubasteroServer.crear_usuario subastero, self, "Yo"
+      id_yo = SubasteroServer.crear_usuario subastero, self, "Yo"
 
       SubasteroServer.ofertar subastero, subasta_notebook, id_yo, 1001
       SubasteroServer.ofertar subastero, subasta_campera, id_yo, 300
@@ -185,18 +185,18 @@ defmodule SubasteroServerTest do
     end
   end
 
-  defmodule Pruebas do
-    use ExUnit.Case
-    use Timex
+  # defmodule Pruebas do
+  #   use ExUnit.Case
+  #   use Timex
 
-    test "probando la biblioteca timex" do
-      now = Date.now
-      IO.inspect now
-      IO.inspect (now |> Date.add(Time.to_timestamp(2998, :msecs)))
-      # el valor del medio está en segundos
-      # ¿pasar la duración a segundos?
-    end
-  end
+  #   test "probando la biblioteca timex" do
+  #     now = Date.now
+  #     IO.inspect now
+  #     IO.inspect (now |> Date.add(Time.to_timestamp(2998, :msecs)))
+  #     # el valor del medio está en segundos
+  #     # ¿pasar la duración a segundos?
+  #   end
+  # end
 
   # # ISO a día
   # date = "2015-06-24T04:50:34-05:00"

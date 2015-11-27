@@ -2,17 +2,19 @@ defmodule IascTpSubastas.Subasta do
   use IascTpSubastas.Web, :model
 
   schema "subastas" do
+    @primary_key { :id, :binary_id, autogenerate: true }
+    
     field :titulo, :string
-    field :precio, :integer
-    field :duracion, :integer
-    field :interesados, { :array, :string }
-    field :ganador_actual, :string
+    field :precio_actual, :integer
+    field :fecha_expiracion, :Timex.Ecto.DateTime
+    field :id_comprador, :string
+    field :compradores, { :array, :string }
 
     timestamps
   end
 
-  @required_fields ~w(titulo precio duracion)
-  @optional_fields ~w(interesados ganador_actual)
+  @required_fields ~w(titulo precio_actual fecha_expiracion)
+  @optional_fields ~w(id_comprador compradores)
 
   @doc """
   Creates a changeset based on the `model` and `params`.

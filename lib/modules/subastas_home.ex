@@ -1,5 +1,5 @@
 require Integer
 
 defmodule SubastasHome do
-  use Home.InMemory
+  use Home.PersistentSubastas
 end

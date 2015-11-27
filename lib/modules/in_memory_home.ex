@@ -19,16 +19,20 @@ defmodule Home.InMemory do
         GenServer.call server, { :get_all, ids }
       end
 
-      def get(server, id_subasta) do
-        GenServer.call server, { :get, id_subasta }
+      def get(server, id) do
+        GenServer.call server, { :get, id }
       end
 
-      def upsert(server, id_subasta, datos_subasta) do
-        GenServer.cast server, { :upsert, id_subasta, datos_subasta }
+      def insert(server, datos) do
+        GenServer.call server, { :insert, datos }
       end
 
-      def delete(server, id_subasta) do
-        GenServer.cast server, { :delete, id_subasta }
+      def update(server, id, datos) do
+        GenServer.call server, { :update, id, datos }
+      end
+
+      def delete(server, id) do
+        GenServer.call server, { :delete, id }
       end
 
       # -- Callbacks
@@ -39,26 +43,27 @@ defmodule Home.InMemory do
       end
 
       def handle_call({ :get_all }, _from, mapa) do
-        { :reply, mapa, mapa }
-      end
-
-      def handle_call({ :get, id_subasta }, _from, mapa) do
-        { :reply, Map.get(mapa, id_subasta), mapa }
+        { :reply, Map.values(mapa), mapa }
       end
 
       def handle_call({ :get_all, ids}, _from, mapa) do
-        { :reply, Map.take(mapa, ids), mapa}
+        { :reply, Map.values(Map.take(mapa, ids)), mapa}
       end
 
-      def handle_cast({ :upsert, id_subasta, datos_subasta }, mapa) do
-        { :noreply, Map.put(mapa, id_subasta, datos_subasta) }
+      def handle_call({ :get, id }, _from, mapa) do
+        { :reply, Map.get(mapa, id), mapa }
       end
 
-      def handle_cast({ :delete, id_subasta }, mapa) do
-        { :noreply, Map.delete(mapa, id_subasta) }
+      def handle_call({ :insert, datos }, _from, mapa) do
+        id = Integer.to_string :random.uniform(1000000)
+        { :reply, id, Map.put(mapa, id, datos) }
       end
 
-      defoverridable [init: 1, handle_call: 3, handle_cast: 2, get_all: 1, get: 2, upsert: 3, delete: 2]
+      def handle_call({ :delete, id }, mapa) do
+        { :reply, :ok, Map.delete(mapa, id) }
+      end
+
+      defoverridable [init: 1, handle_call: 3, get_all: 1, get_all: 2, get: 2, insert: 2, update: 3, delete: 2]
     end
   end
 end

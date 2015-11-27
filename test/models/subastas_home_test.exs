@@ -1,53 +1,53 @@
-require SubastasHome
+# require SubastasHome
 
-defmodule SubastasHomeTest do
-  use ExUnit.Case
+# defmodule SubastasHomeTest do
+#   use ExUnit.Case
 
-  test "upsert, when no there is no value for that key" do
-    {:ok, home} = SubastasHome.start_link
+#   test "upsert, when no there is no value for that key" do
+#     {:ok, home} = SubastasHome.start_link
 
-    SubastasHome.upsert(home, 1, "datos")
-    assert SubastasHome.get(home, 1) == "datos"
-  end
+#     SubastasHome.upsert(home, 1, "datos")
+#     assert SubastasHome.get(home, 1) == "datos"
+#   end
 
-  test "upsert, when there was another value for that key stored" do
-    {:ok, home} = SubastasHome.start_link
+#   test "upsert, when there was another value for that key stored" do
+#     {:ok, home} = SubastasHome.start_link
 
-    SubastasHome.upsert(home, 1, "datos")
-    SubastasHome.upsert(home, 1, "datos2")
-    assert SubastasHome.get(home, 1) == "datos2"
-  end
+#     SubastasHome.upsert(home, 1, "datos")
+#     SubastasHome.upsert(home, 1, "datos2")
+#     assert SubastasHome.get(home, 1) == "datos2"
+#   end
 
-  test "get, when there is no value for that key" do
-    {:ok, home} = SubastasHome.start_link
+#   test "get, when there is no value for that key" do
+#     {:ok, home} = SubastasHome.start_link
 
-    assert SubastasHome.get(home, 1) == nil
-  end
+#     assert SubastasHome.get(home, 1) == nil
+#   end
 
-  test "delete" do
-    {:ok, home} = SubastasHome.start_link
+#   test "delete" do
+#     {:ok, home} = SubastasHome.start_link
 
-    SubastasHome.upsert(home, 1, "datos")
-    SubastasHome.delete(home, 1)
-    assert SubastasHome.get(home, 1) == nil
-  end
+#     SubastasHome.upsert(home, 1, "datos")
+#     SubastasHome.delete(home, 1)
+#     assert SubastasHome.get(home, 1) == nil
+#   end
 
-  test "get_all" do
-    {:ok, home} = SubastasHome.start_link
+#   test "get_all" do
+#     {:ok, home} = SubastasHome.start_link
 
-    SubastasHome.upsert(home, 1, "datos")
-    SubastasHome.upsert(home, 2, "datos2")
+#     SubastasHome.upsert(home, 1, "datos")
+#     SubastasHome.upsert(home, 2, "datos2")
 
-    assert SubastasHome.get_all(home) == %{ 1 => "datos", 2 => "datos2"}
-  end
+#     assert SubastasHome.get_all(home) == %{ 1 => "datos", 2 => "datos2"}
+#   end
 
-  test "get_all/1" do
-    {:ok, home} = SubastasHome.start_link
+#   test "get_all/1" do
+#     {:ok, home} = SubastasHome.start_link
 
-    SubastasHome.upsert(home, 1, "datos")
-    SubastasHome.upsert(home, 2, "datos2")
-    SubastasHome.upsert(home, 3, "datos3")
+#     SubastasHome.upsert(home, 1, "datos")
+#     SubastasHome.upsert(home, 2, "datos2")
+#     SubastasHome.upsert(home, 3, "datos3")
 
-    assert SubastasHome.get_all(home, [1, 2]) == %{ 1 => "datos", 2 => "datos2"}
-  end
-end
+#     assert SubastasHome.get_all(home, [1, 2]) == %{ 1 => "datos", 2 => "datos2"}
+#   end
+# end
