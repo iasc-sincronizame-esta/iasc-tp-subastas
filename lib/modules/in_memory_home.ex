@@ -59,7 +59,11 @@ defmodule Home.InMemory do
         { :reply, id, Map.put(mapa, id, datos) }
       end
 
-      def handle_call({ :delete, id }, mapa) do
+      def handle_call({ :update, id, datos }, _from, mapa) do
+        { :reply, :ok, Map.put(mapa, id, datos) }
+      end
+
+      def handle_call({ :delete, id }, _from, mapa) do
         { :reply, :ok, Map.delete(mapa, id) }
       end
 
