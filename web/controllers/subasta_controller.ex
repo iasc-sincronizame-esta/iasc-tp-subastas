@@ -17,7 +17,6 @@ defmodule IascTpSubastas.SubastaController do
     if subasta != nil do
       conn
       |> put_status(:created)
-      |> put_resp_header("location", subasta_path(conn, :show, subasta))
       |> render("show.json", subasta: {id_subasta, subasta})
     else
       conn
