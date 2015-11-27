@@ -109,44 +109,48 @@ defmodule SubasteroServerTest do
   #   Process.unregister Yo
   # end
 
-  test "la subasta puede terminar sin ningún ganador" do
-    {:ok, subastero} = SubasteroServer.start_link
-
-    SubasteroServer.crear_subasta subastero, "Subasta de 1 milisegundo", 20, 1
-
-    receive do
-    after 50 -> end
-
-    subastas = SubasteroServer.listar_subastas subastero
-    assert subastas == []
-  end
-
-  # test "cuando se cancela una subasta antes de su expiración y cancelación, nadie gana y todos son notificados" do
+  # test "la subasta puede terminar sin ningún ganador" do
   #   {:ok, subastero} = SubasteroServer.start_link
 
-  #   parent = self
-  #   unComprador = spawn fn ->
-  #     Process.flag(:trap_exit, true)
-  #     receive do
-  #       {:subasta_cancelada, mensaje} -> send(parent, {:se_cancelo_la_subasta, mensaje})
-  #     end
-  #   end
-
-  #   id_subasta = SubasteroServer.crear_subasta subastero, "Notebook", 999, 60000
-  #   id_unComprador = SubasteroServer.crear_usuario subastero, unComprador, "Comprador 1"
-  #   id_yo = SubasteroServer.crear_usuario subastero, self, "Yo"
-
-  #   SubasteroServer.ofertar subastero, id_subasta, id_yo, 1000
-  #   SubasteroServer.ofertar subastero, id_subasta, id_unComprador, 1001
-
-  #   SubasteroServer.cancelar_subasta subastero, id_subasta
+  #   SubasteroServer.crear_subasta subastero, "Subasta de 1 milisegundo", 20, 1
 
   #   receive do
-  #     { :subasta_cancelada, mensaje } ->
-  #       assert mensaje == "La subasta ha sido cancelada: Notebook"
-  #   end
-  #   assert_receive {:se_cancelo_la_subasta, "La subasta ha sido cancelada: Notebook"}
+  #   after 50 -> end
+
+  #   subastas = SubasteroServer.listar_subastas subastero
+  #   assert subastas == []
   # end
+
+  test "cuando se cancela una subasta antes de su expiración y cancelación, nadie gana y todos son notificados" do
+    {:ok, subastero} = SubasteroServer.start_link
+
+    parent = self
+    unComprador = spawn fn ->
+      Process.flag(:trap_exit, true)
+      receive do
+        {:subasta_cancelada, mensaje} -> send(parent, {:se_cancelo_la_subasta, mensaje})
+      end
+    end
+    Process.register unComprador, UnComprador
+    Process.register self, Yo
+
+    id_subasta = SubasteroServer.crear_subasta subastero, "Notebook", 999, 60000
+    id_unComprador = SubasteroServer.crear_usuario subastero, UnComprador, "Comprador 1"
+    id_yo = SubasteroServer.crear_usuario subastero, Yo, "Yo"
+
+    SubasteroServer.ofertar subastero, id_subasta, id_yo, 1000
+    SubasteroServer.ofertar subastero, id_subasta, id_unComprador, 1001
+
+    SubasteroServer.cancelar_subasta subastero, id_subasta
+
+    receive do
+      { :subasta_cancelada, mensaje } ->
+        assert mensaje == "La subasta ha sido cancelada: Notebook"
+    end
+    assert_receive {:se_cancelo_la_subasta, "La subasta ha sido cancelada: Notebook"}
+
+    Process.unregister Yo
+  end
 
   # test "un usuario que se registra luego de creada una subasta, puede ofertar y ganar" do
   #   {:ok, subastero} = SubasteroServer.start_link
