@@ -164,13 +164,14 @@ defmodule SubasteroServer do
   def handle_call({ :terminar_subasta, id_subasta }, _from, { subastasHome, compradoresHome, controladores }) do
     IO.puts "ATENCIÓN! TERMINÓ LA SUBASTA #{id_subasta}"
 
+    IO.inspect id_subasta
     subasta = SubastasHome.get subastasHome, id_subasta
 
     IO.inspect subasta
 
-    comprador = CompradoresHome.get(compradoresHome, subasta[:id_comprador])
-
-    if comprador != nil do
+    if subasta[:id_comprador] != nil do
+      comprador = CompradoresHome.get(compradoresHome, subasta[:id_comprador])
+      
       notificar([comprador],
         { :subasta_ganada, "Has ganado la subasta: #{subasta[:titulo]}!"})
     end
