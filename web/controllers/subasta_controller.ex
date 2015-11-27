@@ -46,13 +46,10 @@ defmodule IascTpSubastas.SubastaController do
   #   end
   # end
 
-  # def delete(conn, %{"id" => id}) do
-  #   subasta = Repo.get!(Subasta, id)
+  # CANCELAR subasta
+  def delete(conn, %{"id" => id}) do
+    subasta = Subastero.cancelar_subasta(id)
 
-  #   # Here we use delete! (with a bang) because we expect
-  #   # it to always work (and if it does not, it will raise).
-  #   Repo.delete!(subasta)
-
-  #   send_resp(conn, :no_content, "")
-  # end
+    send_resp(conn, :no_content, "")
+  end
 end
