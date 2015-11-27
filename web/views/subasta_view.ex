@@ -12,7 +12,7 @@ defmodule IascTpSubastas.SubastaView do
   def render("subasta.json", %{subasta: subasta}) do
     %{id: subasta.id,
       titulo: subasta.titulo,
-      precio: subasta.precio,
-      duracion: subasta.duracion}
+      precio: subasta.precio_actual,
+      fecha_expiracion: subasta.fecha_expiracion}
   end
 end
