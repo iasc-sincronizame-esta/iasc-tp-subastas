@@ -201,4 +201,39 @@ defmodule SubasteroServerTest do
     Process.unregister UnComprador
     Process.unregister Yo
   end
+
+  # test "al reiniciar, revive las subastas pendientes" do
+  #   {:ok, subastero} = SubasteroServer.start_link
+
+  #   subasta = SubasteroServer.crear_subasta subastero, "Prueba Muerte", 999, 3000
+
+  #   receive do
+  #   after 500 -> end
+
+  #   GenServer.cast {:global, GlobalSubastero}, { :matate }
+
+  #   receive do
+  #   after 500 -> end
+
+  #   # lo revive el supervisor...
+
+  #   subastas = SubasteroServer.listar_subastas subastero
+  #   assert List.first(subastas) != nil
+  #   # sigue existiendo...
+    
+  #   receive do
+  #   after 3000 -> end
+
+  #   subastas = SubasteroServer.listar_subastas subastero
+  #   assert List.first(subastas) != nil
+  #   # 3 segundos después sigue existiendo
+  #   # (un segundo más de lo que duraba originalmente)
+
+  #   receive do
+  #   after 6000 -> end
+
+  #   subastas = SubasteroServer.listar_subastas subastero
+  #   assert List.first(subastas) == nil
+  #   # después de 6 segundos ya está recontra muerto
+  # end
 end

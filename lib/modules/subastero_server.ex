@@ -71,11 +71,12 @@ defmodule SubasteroServer do
 
       if tiempo_restante > 0 do
         nueva_expiracion = DateHelper.fecha_mas it[:fecha_expiracion], 5000
+        tiempo_restante = tiempo_restante + 5000
         it = Map.put it, :fecha_expiracion, nueva_expiracion
         SubastasHome.update subastasHome, it[:id], it
 
         IO.puts "---"
-        IO.puts "Encontré en la BD la subasta #{it[:id]} y veo que le faltan #{tiempo_restante}ms. Sumo 5s y la levanto..."
+        IO.puts "Encontré en la BD la subasta #{it[:id]} y veo que le faltan #{tiempo_restante}ms. La levanto..."
         IO.puts "---"
         pid_controlador = crear_controlador_subasta(it[:id], tiempo_restante)
         controladores = Map.put(controladores, it[:id], pid_controlador)
@@ -189,7 +190,6 @@ defmodule SubasteroServer do
   def handle_call({ :terminar_subasta, id_subasta }, _from, { subastasHome, compradoresHome, controladores }) do
     IO.puts "ATENCIÓN! TERMINÓ LA SUBASTA #{id_subasta}"
 
-    IO.inspect id_subasta
     subasta = SubastasHome.get subastasHome, id_subasta
 
     IO.inspect subasta
@@ -230,15 +230,15 @@ defmodule SubasteroServer do
     { :reply, subastas, { subastasHome, compradoresHome, controladores } }
   end
 
-  def handle_call({ :matate }, _from, _state) do
-    { :stop, :normal, _state }
+  def handle_cast({ :matate }, _state) do
+    9 / 0
   end
 
   # ---------- Helpers ------------
 
   def crear_controlador_subasta(id_subasta, duracion) do
     parent = self
-    spawn fn -> ControladorSubasta.empezar_subasta(parent, id_subasta, duracion) end
+    spawn_link fn -> ControladorSubasta.empezar_subasta(parent, id_subasta, duracion) end
   end
 
   def matar_controlador(controladores, id_subasta) do
