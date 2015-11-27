@@ -45,10 +45,6 @@ defmodule SubasteroServer do
 
   # ---
 
-  # def notificar(interesados, mensaje, get_rname \\ fn(interesado) -> interesado[:rname] end) do
-  #   Enum.each(interesados, fn(interesado) -> send get_rname.(interesado), mensaje end)
-  # end
-
   def notificar(interesados, mensaje, get_rname \\ fn(interesado) -> interesado[:rname] end) do
     Enum.each(interesados, fn(interesado) ->
       rname = get_rname.(interesado)
