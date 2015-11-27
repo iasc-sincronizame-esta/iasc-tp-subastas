@@ -25,35 +25,34 @@ defmodule IascTpSubastas.SubastaController do
   end
 
    def show(conn, %{"id" => id}) do
-    {id_subasta, _} = Integer.parse(id)
-    subasta = Subastero.obtener_subasta(id_subasta)
+    subasta = Subastero.obtener_subasta(id)
     conn
     |> put_status(:ok)
-    |> render("show.json", subasta: {id_subasta, subasta})
+    |> render("show.json", subasta: subasta)
   end
 
 
-  def update(conn, %{"id" => id, "subasta" => subasta_params}) do
-    subasta = Repo.get!(Subasta, id)
-    changeset = Subasta.changeset(subasta, subasta_params)
+  # def update(conn, %{"id" => id, "subasta" => subasta_params}) do
+  #   subasta = Repo.get!(Subasta, id)
+  #   changeset = Subasta.changeset(subasta, subasta_params)
 
-    case Repo.update(changeset) do
-      {:ok, subasta} ->
-        render(conn, "show.json", subasta: subasta)
-      {:error, changeset} ->
-        conn
-        |> put_status(:unprocessable_entity)
-        |> render(IascTpSubastas.ChangesetView, "error.json", changeset: changeset)
-    end
-  end
+  #   case Repo.update(changeset) do
+  #     {:ok, subasta} ->
+  #       render(conn, "show.json", subasta: subasta)
+  #     {:error, changeset} ->
+  #       conn
+  #       |> put_status(:unprocessable_entity)
+  #       |> render(IascTpSubastas.ChangesetView, "error.json", changeset: changeset)
+  #   end
+  # end
 
-  def delete(conn, %{"id" => id}) do
-    subasta = Repo.get!(Subasta, id)
+  # def delete(conn, %{"id" => id}) do
+  #   subasta = Repo.get!(Subasta, id)
 
-    # Here we use delete! (with a bang) because we expect
-    # it to always work (and if it does not, it will raise).
-    Repo.delete!(subasta)
+  #   # Here we use delete! (with a bang) because we expect
+  #   # it to always work (and if it does not, it will raise).
+  #   Repo.delete!(subasta)
 
-    send_resp(conn, :no_content, "")
-  end
+  #   send_resp(conn, :no_content, "")
+  # end
 end

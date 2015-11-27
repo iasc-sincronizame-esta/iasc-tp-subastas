@@ -2,15 +2,15 @@ defmodule IascTpSubastas.SubastaView do
   use IascTpSubastas.Web, :view
 
   def render("index.json", %{subastas: subastas}) do
-    %{data: render_many(Map.to_list(subastas), IascTpSubastas.SubastaView, "subasta.json")}
+    %{data: render_many(subastas, IascTpSubastas.SubastaView, "subasta.json")}
   end
 
-  def render("show.json", %{subasta: {id_subasta, subasta}}) do
-    %{data: render_one({id_subasta, subasta}, IascTpSubastas.SubastaView, "subasta.json")}
+  def render("show.json", %{subasta: subasta}) do
+    %{data: render_one(subasta, IascTpSubastas.SubastaView, "subasta.json")}
   end
 
-  def render("subasta.json", %{subasta: {id_subasta, subasta}}) do
-    %{id: id_subasta,
+  def render("subasta.json", %{subasta: subasta}) do
+    %{id: subasta.id,
       titulo: subasta.titulo,
       precio: subasta.precio_actual,
       fecha_expiracion: subasta.fecha_expiracion}
