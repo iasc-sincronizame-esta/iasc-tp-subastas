@@ -238,7 +238,7 @@ defmodule SubasteroServer do
 
   def crear_controlador_subasta(id_subasta, duracion) do
     parent = self
-    spawn_link fn -> ControladorSubasta.empezar_subasta(parent, id_subasta, duracion) end
+    spawn fn -> ControladorSubasta.empezar_subasta(parent, id_subasta, duracion) end
   end
 
   def matar_controlador(controladores, id_subasta) do
