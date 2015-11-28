@@ -10,6 +10,11 @@
 /test/models
 ```
 
+Instrucciones
+-------------
+
+Correr los siguientes comandos en orden
+
 ## Configuración
 ```bash
 mix deps.get
@@ -23,15 +28,25 @@ mix ecto.create
 ```bash
 make server
 ```
-
+## Correr el servidor de failover
+```
+make failover
+```
 ## Correr un cliente
 ```
 make client
 ```
-
+## Correr un segundo cliente
+```
+make client2
+```
+## Correr un tercer cliente
+```
+make client3
+```
 ## Correr los tests
 ```
-make test
+make tests
 ```
 
 ## Ejemplo de phoenix.gen
