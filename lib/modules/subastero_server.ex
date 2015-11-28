@@ -231,14 +231,14 @@ defmodule SubasteroServer do
   end
 
   def handle_cast({ :matate }, _state) do
-    9 / 0
+    Process.exit(self, :kill)
   end
 
   # ---------- Helpers ------------
 
   def crear_controlador_subasta(id_subasta, duracion) do
     parent = self
-    spawn fn -> ControladorSubasta.empezar_subasta(parent, id_subasta, duracion) end
+    spawn_link fn -> ControladorSubasta.empezar_subasta(parent, id_subasta, duracion) end
   end
 
   def matar_controlador(controladores, id_subasta) do
