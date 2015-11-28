@@ -43,6 +43,10 @@ defmodule SubasteroServer do
     GenServer.call server, { :obtener_subasta, id_subasta }
   end
 
+  def ping(server) do
+    GenServer.call server, { :ping }
+  end
+
   # ---
 
   def notificar(interesados, mensaje, get_rname \\ fn(interesado) -> interesado[:rname] end) do
@@ -219,6 +223,13 @@ defmodule SubasteroServer do
   ###
   def handle_call({:obtener_subasta, id_subasta}, _from, { subastasHome, compradoresHome, controladores }) do
     { :reply, SubastasHome.get(subastasHome, id_subasta), { subastasHome, compradoresHome, controladores }}
+  end
+
+  ###
+  ### PING
+  ###
+  def handle_call({:ping}, _from, { subastasHome, compradoresHome, controladores }) do
+    { :reply, :pong, { subastasHome, compradoresHome, controladores }}
   end
 
   ###

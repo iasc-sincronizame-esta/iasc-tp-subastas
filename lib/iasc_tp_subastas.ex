@@ -4,15 +4,26 @@ defmodule IascTpSubastas do
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
-    if System.get_env("type") == "client" do
-      server = System.get_env "server"
+    IO.puts "Callback application start"
+    type = System.get_env("type")
+    server = System.get_env "server"
+    IO.puts type
+    if type == "client" do
 
       IO.puts "Connecting client to #{server} ..."
       Node.connect(:"#{server}")
 
       {:ok, self}
     else
-      start_server
+      if type == "failover" do
+        if(Node.ping(:"#{server}") == :pang) do
+          start_server
+        end
+
+        {:ok, self}
+      else
+        start_server
+      end
     end
   end
 
