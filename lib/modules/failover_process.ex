@@ -1,13 +1,15 @@
 defmodule FailoverProcess do
   def start() do
-    listen(true)
+    server = System.get_env "server"
+
+    listen(server, true)
   end
 
-  def listen(failover_mode) do
+  def listen(server, failover_mode) do
     receive do
     after 1000 ->
       IO.puts "Ping.."
-      if(Node.ping(:"server@aldanaqm") == :pang) do
+      if(Node.ping(:"#{server}") == :pang) do
         IO.puts "Server down! Taking over"
         Application.stop(:phoenix)
         Application.stop(:iasc_tp_subastas)
@@ -19,7 +21,7 @@ defmodule FailoverProcess do
     end
 
     if(failover_mode) do
-      listen(failover_mode)
+      listen(server, failover_mode)
     end
   end
 end
