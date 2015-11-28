@@ -6,6 +6,8 @@ client2:
 	type=client server=server@aldanaqm iex --sname ariel --cookie subastas -S mix run --eval "ClientServer.start('Ariel', Node.self, self)"
 client3:
 	type=client server=server@aldanaqm iex --sname rodri --cookie subastas -S mix run --eval "ClientServer.start('Rodri', Node.self, self)"
+failover:
+	type=failover server=server@aldanaqm iex --sname failover --cookie subastas -S mix phoenix.server --eval "FailoverProcess.start()"
 tests:
 	mix test
 drop_db:
